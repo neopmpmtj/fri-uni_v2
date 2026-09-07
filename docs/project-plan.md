@@ -386,6 +386,8 @@ Do not implement in these phases:
 - [x] Line drawer: hide tubing length until extra tubing; default shortest length; store `extra_tubing_metres` on the proforma (completed 2026-09-07)
 - [x] AC pairing: indoor design lines, outdoor ports, `item_matches`, grouped quote lines, rewrite seed (completed 2026-09-07)
 - [x] Migration-seed parameters, Air conditioners family, brands, tubing lengths (completed 2026-09-07)
+- [x] Two tables vs one: clients/sites vs items documented (completed 2026-09-07)
+- [x] Line drawer: edit/delete 1-port split outdoor (completed 2026-09-07)
 
 ## Tests policy
 

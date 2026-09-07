@@ -1,6 +1,6 @@
 # Session handoff
 
-> **Last updated:** 2026-09-07 17:16 WEST (Europe/Lisbon)  
+> **Last updated:** 2026-09-07 18:47 WEST (Europe/Lisbon)  
 > Replace with the current date and time whenever you edit this file.
 
 ## Project
@@ -19,15 +19,20 @@ Catalog: **family → indoor design line (`sub_families`) → indoor item**; out
 
 Do not run `seed_demo` in production. Fresh local DB: `rm -f db.sqlite3`, then `migrate` and `seed_demo`. Restart `runserver` after schema changes. After pulling this tree, run **`migrate`** (migration `0019`).
 
+**Two tables vs one:** `clients` / `sites` are different nouns (quote → site). Indoor/outdoor stay one `items` table + `item_matches`. See [`data-points.md`](data-points.md) and preliminary-plan update 2026-09-07.
+
 **Proforma document life:** `draft` | `issued` only. **Accepted** and **rejected** are overlays (`accepted_at` / `rejected_at`), mutually exclusive (clear one before marking the other). **Change** is blocked when accepted or rejected (or already superseded). There is no `cancelled` status (legacy rows mapped to `issued` in `0016`).
 
-**AC systems:** **Split** = 1 outdoor (`ports=1`) + 1 indoor (staff start from the indoor; default match auto-adds the outdoor). **Multi** = 1 outdoor (`ports≥2`) + 2+ indoors (staff start from the outdoor, then Add indoor). Extra tubing stays on indoor runs.
+**AC systems:** **Split** = 1 outdoor (`ports=1`) + 1 indoor (staff start from the indoor; default match auto-adds the outdoor). **Multi** = 1 outdoor (`ports≥2`) + 2+ indoors (staff start from the outdoor, then Add indoor). Extra tubing stays on indoor runs. Editing a 1-port outdoor line uses the outdoor drawer (not indoor/design-line).
 
 ## Done (this session)
 
-- **Migration-seeded lookups** (`0019_seed_reference_lookups`): parameters (`currency=EUR`, discount 10%, tubing unit `m`), family Air conditioners (default), brands Mitsubishi / LG / Nippon / Daikin, tubing 3/5/10 m. Present after `migrate` without `seed_demo`.
-- `seed_catalog` still fills design lines, items, and matches (idempotent over the new rows).
-- **Tests:** **147 passing** (`pytest`)
+- **Migration `0019`:** parameters, Air conditioners family, brands, tubing lengths on `migrate` (no `seed_demo` required for those lookups)
+- Pairing leftover cleanup: unused `subFamily` i18n, `data-kind`/`data-ports`, unread `hide_family` on line form, unstyled `line-child`
+- **Two tables vs one** documented (clients/sites vs items)
+- **Fix:** edit/delete 1-port split outdoor lines (`outdoor_only` for any outdoor; Delete `formnovalidate`)
+- **Tests:** **149 passing** (`pytest`)
+- Working tree committed on `main` (`a4ff192` and parents)
 
 ## Done (earlier)
 
@@ -43,13 +48,11 @@ Do not run `seed_demo` in production. Fresh local DB: `rm -f db.sqlite3`, then `
 - Proforma snapshot fields for site/client contact on issued PDFs
 - Email send / stored PDFs / Google OAuth / dark theme
 - Enable non-PT phone countries in UI (table seeded; PT only disabled selector)
-- **Git commit** of this working tree
 
 ## Next
 
-1. Existing local DB: `migrate` (applies `0019`). Fresh wipe still `rm -f db.sqlite3 && migrate && seed_demo`
-2. Commit when ready (pairing + lookup seeds)
-3. VAT on quote math / PDF — unchanged product backlog
+1. VAT on quote math / PDF — product backlog
+2. Production deploy when ready
 
 ## Commands
 

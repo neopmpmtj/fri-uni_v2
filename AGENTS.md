@@ -85,9 +85,9 @@ Mark complete during session-handoff: `- [x] ... (completed YYYY-MM-DD)`
 
 ## Session
 
-**Done:** Migration `0019` seeds parameters, Air conditioners family, brands, tubing lengths on `migrate`. **147 tests** green.
+**Done:** Migration `0019` lookup seeds; two-tables-vs-one docs; 1-port outdoor line edit/delete; pairing leftover cleanup. **149 tests** green. Tree committed on `main`.
 
-**Not done:** Production deploy; letterhead; real prices; volume auto-pick; capacity math; VAT on quote math/PDF; contact fields on issued-quote snapshots/PDF; git commit.
+**Not done:** Production deploy; letterhead; real prices; volume auto-pick; capacity math; VAT on quote math/PDF; contact fields on issued-quote snapshots/PDF.
 
-**Next:** `migrate` (or fresh `rm -f db.sqlite3` then `migrate` + `seed_demo`); commit when ready; VAT-on-quote backlog. Read [`docs/handoff.md`](docs/handoff.md).
+**Next:** VAT on quote math / PDF. Read [`docs/handoff.md`](docs/handoff.md).
 
