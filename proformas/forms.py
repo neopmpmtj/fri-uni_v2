@@ -1,5 +1,6 @@
 from django import forms
 from django.core.exceptions import ValidationError
+from django.db.models import Q
 
 from .models import (
     Brand,
@@ -312,7 +313,21 @@ class ProformaLineForm(forms.ModelForm):
             "sub_family__family", "brand", "power"
         ).order_by("internal_code")
         if outdoor_only:
-            items = items.filter(kind=Item.Kind.OUTDOOR, max_indoor_ports__gte=2)
+            items = items.filter(kind=Item.Kind.OUTDOOR)
+            instance_item = (
+                self.instance.item
+                if self.instance.pk and self.instance.item_id
+                else None
+            )
+            if instance_item is None:
+                items = items.filter(max_indoor_ports__gte=2)
+            else:
+                ports = instance_item.max_indoor_ports or 0
+                if ports <= 1:
+                    port_q = Q(max_indoor_ports=1)
+                else:
+                    port_q = Q(max_indoor_ports__gte=2)
+                items = items.filter(port_q | Q(pk=instance_item.pk))
         elif parent_line is not None:
             indoor_ids = ItemMatch.objects.filter(
                 outdoor=parent_line.item

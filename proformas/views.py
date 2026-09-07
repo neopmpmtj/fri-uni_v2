@@ -444,10 +444,7 @@ def proforma_detail(request, pk):
             ProformaLine, pk=request.GET["line"], proforma=proforma
         )
         parent_line = editing_line.parent_line
-        outdoor_only = (
-            editing_line.item.kind == Item.Kind.OUTDOOR
-            and (editing_line.item.max_indoor_ports or 0) >= 2
-        )
+        outdoor_only = editing_line.item.kind == Item.Kind.OUTDOOR
         line_form = ProformaLineForm(
             instance=editing_line,
             parent_line=parent_line,
