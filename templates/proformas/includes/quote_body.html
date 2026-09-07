@@ -32,7 +32,7 @@
         <tbody>
             {% for line in lines %}
             <tr>
-                <td>{{ line.brand_name }} {{ line.family_name }} {{ line.sub_family_name }} {% if line.kind == "indoor" %}{{ labels.kindIndoor }}{% elif line.kind == "outdoor" %}{{ labels.kindOutdoor }}{% else %}{{ line.kind }}{% endif %} {{ line.power_value }} {{ line.power_unit }}</td>
+                <td>{% if line.parent_line_id %}— {% endif %}{{ line.brand_name }} {{ line.family_name }} {{ line.sub_family_name }} {% if line.kind == "indoor" %}{{ labels.kindIndoor }}{% elif line.kind == "outdoor" %}{{ labels.kindOutdoor }}{% else %}{{ line.kind }}{% endif %} {{ line.power_value }} {{ line.power_unit }}</td>
                 <td>{{ line.quantity }}</td>
                 <td>{{ line.unit_price }}</td>
                 <td>{% if line.extra_tubing %}{{ line.tubing_length_value }} m{% else %}—{% endif %}</td>

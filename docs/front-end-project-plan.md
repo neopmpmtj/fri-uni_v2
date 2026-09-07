@@ -125,9 +125,9 @@ Only place to set language. Daily cards + Setup cards as above. Implementation: 
 Daily catalog. Light: identity only, **no sales price field**.
 
 - Toolbar: search, filter by family / manufacturer, **New item**.
-- `.grid`: code, family, sub-family, manufacturer, kind, BTU, max m³, VAT, actions. Price may show read-only; it is not edited here.
-- Drawer: family, sub-family (filtered by family), manufacturer, internal code, kind, **power** (dropdown from setup lookup), max volume m³ (optional), VAT (required; new item pre-selects the default rate), default checkbox.
-- If the chosen sub-family has a manufacturer, that field is filled and **visible but inactive**. If the sub-family has none, manufacturer stays editable.
+- `.grid`: code, family, design line (indoor only), manufacturer, kind, ports (outdoor), power, max m³, VAT, actions. Price may show read-only; it is not edited here.
+- Drawer: family (hidden when only one live family), design line (indoor only; filtered by family), manufacturer, internal code, kind, **power**, max volume m³ (indoor), **max indoor ports** (outdoor), VAT, default checkbox. Indoor may pick a default split outdoor; outdoor may pick compatible indoors.
+- If the chosen design line has a manufacturer, that field is filled and **visible but inactive**. Outdoor items have no design line.
 - Soft-delete in the drawer (admin only).
 
 ### Families / Sub-families / Manufacturers / VAT / Parameters / Tubing (setup pages)
@@ -173,8 +173,8 @@ First-class page. **Do not** nest sites inside the client drawer the way warehou
 Analog of a warehouse **console**, not a Django form wizard.
 
 - Header **on the page** (not in a drawer): upfront discount %, extra labour, observations; live totals including stored extra-tubing metres when non-zero; **Issue** / **Change** when allowed.
-- Lines: `.grid` (item snapshot or live catalog name while draft, qty, tubing, line total).
-- **Add line / Edit line = drawer:** Family → Sub-family → Manufacturer → Item (defaults pre-selected), quantity, extra tubing boolean; **tubing length only when extra tubing is checked** (shortest catalog length pre-selected, no blank dashes). If the sub-family has a manufacturer, that control is filled and inactive.
+- Lines: `.grid` grouped by system (outdoor heading, indoor rows under it; item snapshot or live catalog name while draft, qty, tubing, line total).
+- **Add split / Add multi / Add indoor = drawer.** Family hidden while only one live family. **Split:** manufacturer → design line → indoor (matched ports=1 outdoor auto-added). **Multi:** manufacturer → outdoor (`ports≥2`). **Add indoor** on an outdoor row: design line → indoor from `item_matches`. Quantity; extra tubing on indoor lines only; tubing length only when extra tubing is checked (shortest catalog length pre-selected). If the design line has a manufacturer, that control is filled and inactive.
 - **Draft:** editable; optional “Revision of PF-…” when `replaces` is set.
 - **Issued:** read-only; **Change** (copy to new draft) when not accepted, not rejected, and not superseded; **Mark accepted** / **Mark rejected** when neither is set (Yes/No confirm, Yes default); **Clear accepted** or **Clear rejected** when one is set; **View quote** / **Download PDF**. Action row: Change left, accepted/rejected (or clear) grouped on the right; View quote + Download PDF on the next row, side by side.
 - **Issued superseded:** read-only; link to replacement draft; no Change.

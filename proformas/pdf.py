@@ -9,11 +9,13 @@ COMPANY_NAME = "fri-uni"
 
 
 def build_proforma_pdf(proforma, lang="en"):
+    from .services import grouped_proforma_lines
+
     html = render_to_string(
         "proformas/quote_pdf.html",
         {
             "proforma": proforma,
-            "lines": proforma.lines.all(),
+            "lines": grouped_proforma_lines(proforma),
             "labels": quote_labels(lang),
             "company_name": COMPANY_NAME,
             "html_lang": "pt-PT" if lang == "pt" else "en",

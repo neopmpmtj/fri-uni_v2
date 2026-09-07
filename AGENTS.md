@@ -85,9 +85,9 @@ Mark complete during session-handoff: `- [x] ... (completed YYYY-MM-DD)`
 
 ## Session
 
-**Done:** Crash/freeze review [`docs/reviews/error-dead-ends-2026-09-07-1238.md`](docs/reviews/error-dead-ends-2026-09-07-1238.md) + H/M/L remediations (PDF/create-draft errors, confirm JS, atomic issue, catalog delete guards, row locks, `0016` cancelled→issued). Rejected overlay + new-draft form + list sort in same tree. **133 tests** green.
+**Done:** AC pairing — indoor design lines, outdoor ports, `item_matches`, grouped quote lines (`parent_line`); seed_catalog/seed_demo rewritten (Cascais multi); migration `0018`. **146 tests** green.
 
-**Not done:** Production deploy; letterhead; real prices; volume auto-pick; indoor/outdoor auto-pair; VAT on quote math/PDF; contact fields on issued-quote snapshots/PDF; git commit.
+**Not done:** Production deploy; letterhead; real prices; volume auto-pick; capacity math; VAT on quote math/PDF; contact fields on issued-quote snapshots/PDF; git commit.
 
-**Next:** `migrate` + manual confirm-dialog check; commit when ready; VAT-on-quote backlog. Read [`docs/handoff.md`](docs/handoff.md).
+**Next:** Fresh DB `rm -f db.sqlite3` then `migrate` + `seed_demo`; commit when ready; VAT-on-quote backlog. Read [`docs/handoff.md`](docs/handoff.md).
 

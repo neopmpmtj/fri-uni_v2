@@ -20,7 +20,7 @@ At **issue**, snapshot client, site, and catalog display fields onto the proform
 
 Shared core in one database.
 
-- Staff web app (MVP) writes all tables below. Catalog identity and setup (families, sub-families, manufacturers, items, VAT rates, parameters, tubing lengths) are staff pages. Django admin is not the catalog UI (users and audit only).
+- Staff web app (MVP) writes all tables below. Catalog identity and setup (families, indoor design lines / sub-families, manufacturers, items, item matches, VAT rates, parameters, tubing lengths) are staff pages. Django admin is not the catalog UI (users and audit only).
 - **CLI** (later slice) writes the same proforma workflow so an LLM agent can create a proforma in one shot. Not a separate store.
 
 ### CLI contract (later slice; no extra schema)
@@ -29,7 +29,7 @@ Mandatory flags:
 
 - `--user` — staff email; becomes `created_by`
 - `--site` — site id
-- at least one `--line` — `item_id:qty` or `item_id:qty:tubing_length_id`
+- at least one `--line` — `item_id:qty` or `item_id:qty:tubing_length_id`. An indoor line without a preceding outdoor on the same command auto-pairs a split outdoor (`ports=1`). An outdoor line starts a system; following indoor lines attach to that outdoor.
 
 Optional flags:
 
@@ -53,7 +53,7 @@ Same validation and snapshot rules as the web app. Intended for LLM agent invoca
   - `role` — enum `staff` | `admin`, required
   - `is_active` — boolean, required
 - Uniqueness: live `email`
-- Notes: maps to existing `accounts.User` (email login). Admin-provisioned; no public signup. Clients are not users. Demo manager (`staff`) may create and edit clients, sites, catalog (families, sub-families, manufacturers, items, VAT rates, sales prices, tubing lengths), parameters, and proformas, and may issue / mark accepted or rejected; only `admin` may soft-delete clients, sites, and catalog rows. Parameters have no delete.
+- Notes: maps to existing `accounts.User` (email login). Admin-provisioned; no public signup. Clients are not users. Demo manager (`staff`) may create and edit clients, sites, catalog (families, indoor design lines, manufacturers, items, item matches, VAT rates, sales prices, tubing lengths), parameters, and proformas, and may issue / mark accepted or rejected; only `admin` may soft-delete clients, sites, and catalog rows. Parameters have no delete.
 - Extra history table: no
 - Extra activity table: no
 
@@ -177,33 +177,33 @@ Same validation and snapshot rules as the web app. Intended for LLM agent invoca
 
 ### families
 
-- Purpose: product category (season / job type), not a manufacturer range. Start: Air conditioners (default), Underfloor heating, Domestic hot water.
+- Purpose: product class (job type), not a manufacturer range or indoor design line. Seed: Air conditioners (default). Underfloor heating and DHW are later families, not seeded in this slice.
 - Written by (apps): staff web app (setup page)
 - Fields (plus always-on):
   - `name` — text, required
   - `is_default` — boolean, required, default false
-- Relationships: has many `sub_families`
+- Relationships: has many `sub_families` (indoor design lines)
 - Uniqueness: live `name` (case-insensitive); at most one live row with `is_default` true
 - Reason-required fields: none
 - Extra history table: no
 - Extra activity table: no
-- Notes: default family is Air conditioners (most sold). New proforma lines pre-select it.
+- Notes: quoting and item forms hide the family picker while only one live family exists.
 
 ### sub_families
 
-- Purpose: named range under a family (e.g. Sensira, Split). May optionally belong to one manufacturer (e.g. Perfera → Daikin). Shared ranges such as Split leave manufacturer blank so any brand can use them.
-- Written by (apps): staff web app (setup page)
+- Purpose: **indoor design line** (look of the indoor unit: Perfera, Sensira, Stylish, generic Split). Not an outdoor series. May optionally belong to one manufacturer (e.g. Perfera → Daikin). Shared lines such as Split leave manufacturer blank so any brand can use them for indoor SKUs.
+- Written by (apps): staff web app (setup page). UI label: Design line.
 - Fields (plus always-on):
   - `family` — fk → `families`, required
   - `brand` — fk → `brands`, optional (null = shared across manufacturers)
   - `name` — text, required
   - `is_default` — boolean, required, default false
-- Relationships: belongs to one `family`; optionally one `brand`; has many `items`
+- Relationships: belongs to one `family`; optionally one `brand`; has many indoor `items` (outdoor items do not point here)
 - Uniqueness: live `name` per `family` (name case-insensitive); at most one live `is_default` true per family
 - Reason-required fields: none
 - Extra history table: no
 - Extra activity table: no
-- Notes: if `brand` is set, New/Edit item fills manufacturer from the sub-family and the control is visible but inactive. If blank, staff pick manufacturer on the item. Item still has its own required `brand` FK.
+- Notes: if `brand` is set, New/Edit **indoor** item fills manufacturer from the design line and the control is visible but inactive. Pairing does **not** use this table. Outdoor items must not set `sub_family`.
 
 ### powers
 
@@ -237,24 +237,39 @@ Same validation and snapshot rules as the web app. Intended for LLM agent invoca
 
 ### items
 
-- Purpose: one catalog machine (indoor or outdoor); one machine per proforma line
+- Purpose: one catalog machine (indoor or outdoor); one machine per proforma line. Indoor and outdoor are peer SKUs, not parent-child rows.
 - Written by (apps): staff web app (Items page for identity; manufacturer pricelist for `list_price`)
 - Fields (plus always-on):
-  - `sub_family` — fk → `sub_families`, required
+  - `sub_family` — fk → `sub_families`, required when `kind=indoor`, **null when `kind=outdoor`** (indoor design line only)
   - `brand` — fk → `brands`, required
   - `vat_rate` — fk → `vat_rates`, required
   - `internal_code` — text, required (stored uppercase)
   - `kind` — enum `indoor` | `outdoor`, required
   - `power` — fk → `powers`, required
-  - `max_volume_m3` — number, optional (room volume this unit is suitable for, up to this many cubic metres; e.g. 9000 BTU indoor → 20). Null = unknown / not applicable. For later auto-matching; not used in quoting yet.
+  - `max_indoor_ports` — integer, required when `kind=outdoor` (≥1; 1 = split outdoor, 2+ = multi outdoor). Null when `kind=indoor`.
+  - `max_volume_m3` — number, optional (room volume this indoor is suitable for, up to this many cubic metres; e.g. 9000 BTU indoor → 20). Null = unknown / not applicable / outdoor. For later auto-matching; not used in quoting yet.
   - `list_price` — money, required, default 0 (current **sales** price; edited only on the manufacturer pricelist)
   - `is_default` — boolean, required, default false
-- Relationships: belongs to one `sub_family` (and thus a family), one `brand`, one `vat_rate`, and one `power`; referenced by `proforma_lines`
-- Uniqueness: live `internal_code` (compared case-insensitive); live (`sub_family`, `brand`, `kind`, `power`) — one catalog machine per combo (family is implied by `sub_family`); at most one live `is_default` true per (`sub_family`, `brand`)
+- Relationships: indoor belongs to one design line (`sub_family`) and thus a family; outdoor has no design line; both belong to one `brand`, one `vat_rate`, and one `power`; referenced by `proforma_lines` and `item_matches`
+- Uniqueness: live `internal_code` (compared case-insensitive); live indoor (`sub_family`, `brand`, `power`); live outdoor (`brand`, `power`, `max_indoor_ports`); at most one live indoor `is_default` true per (`sub_family`, `brand`); at most one live outdoor `is_default` true per (`brand`, `max_indoor_ports`)
 - Reason-required fields: `list_price`
 - Extra history table: no (locked lines hold the snapshot; no catalog price-history screen)
 - Extra activity table: no
-- Notes: default indoor+outdoor matching is deferred (`model_default_matches` in a later slice). Volume-based auto-pick is deferred (field stored only). MVP quoting picks each machine on its own line. New items start at sales price 0 until priced on the manufacturer page. VAT is identity on the item; line totals do not include VAT yet. When the parent sub-family has a manufacturer, the item’s `brand` is copied from that sub-family and cannot be chosen independently.
+- Notes: pairing is `item_matches`, not a catalog FK from indoor to outdoor. Volume-based auto-pick is deferred (field stored only). New items start at sales price 0 until priced on the manufacturer page. VAT is identity on the item; line totals do not include VAT yet. When the indoor design line has a manufacturer, the item’s `brand` is copied from that design line and cannot be chosen independently.
+
+### item_matches
+
+- Purpose: which indoor SKUs may attach to which outdoor SKU (split and multi-split). Replaces the deferred `model_default_matches` idea.
+- Written by (apps): staff web app (item drawer); seed
+- Fields (plus always-on):
+  - `outdoor` — fk → `items`, required (`kind=outdoor`)
+  - `indoor` — fk → `items`, required (`kind=indoor`)
+  - `is_default` — boolean, required, default false (the split auto-pick outdoor for that indoor)
+- Uniqueness: live (`outdoor`, `indoor`); at most one live `is_default` true per indoor
+- Reason-required fields: none
+- Extra history table: no
+- Extra activity table: no
+- Notes: outdoor and indoor need not share a design line (outdoor has none). Matches may cross indoor design lines. Split auto-pick uses the default match whose outdoor has `max_indoor_ports=1`.
 
 ### tubing_lengths
 
@@ -326,34 +341,37 @@ Same validation and snapshot rules as the web app. Intended for LLM agent invoca
 
 ### proforma_lines
 
-- Purpose: one machine on a proforma (e.g. five AC units for a house = five lines)
+- Purpose: one machine on a proforma. Lines are grouped into **systems**: one outdoor parent plus 1 indoor (split) or 2+ indoors (multi-split, up to `max_indoor_ports`).
 - Written by (apps): staff web app; later CLI
 - Fields (plus always-on):
   - `proforma` — fk → `proformas`, required
   - `item` — fk → `items`, required
+  - `parent_line` — fk → `proforma_lines`, optional. Null on the outdoor line. Indoor lines point at that outdoor line on the same proforma.
   - `quantity` — number, required, default 1
-  - `extra_tubing` — boolean, required, default false
+  - `extra_tubing` — boolean, required, default false (indoor runs only; outdoor lines stay false)
   - `tubing_length` — fk → `tubing_lengths`, optional (required when `extra_tubing` is true)
   - `unit_price` — money, required (snapshot of item sales price at save/issue)
   - `tubing_amount` — money, required, default 0 (snapshot of tubing length price; 0 when no extra tubing)
   - `line_total` — money, required
   - Snapshot fields (filled at issue; read by PDF):
     - `brand_name` — text
-    - `family_name` — text
-    - `sub_family_name` — text
+    - `family_name` — text (indoor: from design line’s family; outdoor: default family display name)
+    - `sub_family_name` — text (indoor design line name; blank on outdoor)
     - `internal_code` — text
     - `kind` — enum `indoor` | `outdoor`
     - `power_value` — integer (snapshot of catalog power at issue)
     - `power_unit` — text (snapshot of catalog unit at issue)
     - `tubing_length_value` — number, optional (metres; 0 or null when no extra tubing)
-- Relationships: belongs to one `proforma`; points at one `item`; optional `tubing_length`
+- Relationships: belongs to one `proforma`; points at one `item`; optional `tubing_length`; indoor lines belong to one outdoor `parent_line`
 - Uniqueness: none (same item may appear on more than one line)
 - Reason-required fields: none
 - Extra history table: no
 - Extra activity table: no
 - Notes:
-  - Extra tubing is **per line** and charged **per machine**: `line_total = quantity × (unit_price + tubing_amount)`.
-  - On one invoice, some lines may need extra tubing and some may not.
+  - Extra tubing is **per indoor line** and charged **per machine**: `line_total = quantity × (unit_price + tubing_amount)`.
+  - On one invoice, some indoor runs may need extra tubing and some may not.
+  - Quote entry: **split** starts from design line → indoor SKU → auto-add matched ports=1 outdoor as `parent_line`. **Multi** starts from outdoor (`ports≥2`) then indoor children from `item_matches`.
+  - At issue: every indoor has a parent; split outdoor has exactly 1 child; multi outdoor has 2..`max_indoor_ports` children; each indoor is in `item_matches` for that outdoor.
   - After issue, money and snapshot fields do not change if catalog prices or names change.
 
 ## Rejected
@@ -361,7 +379,8 @@ Same validation and snapshot rules as the web app. Intended for LLM agent invoca
 - `contacts`, `addresses` tables
 - Stock, supplier POs, jobs / install calendar tables
 - Stored PDF / file table
-- `model_default_matches` in MVP (deferred to later slice; explicit migration when quoting auto-pair is built)
+- Splitting `items` into separate AC exterior / AC interior tables
+- Catalog FK from indoor item to a single outdoor SKU (`interior.exterior_id`)
 - `item_price_history`, `proforma_activities`, or any collapse of the four audit kinds into one “audit” table
 - Client-login / portal tables
 - Mailer / worker / job-queue tables in this slice

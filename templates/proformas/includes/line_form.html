@@ -1,15 +1,21 @@
 <form method="post" action="{% url 'proforma_detail' proforma.pk %}" id="line-form">
     {% csrf_token %}
     {% if editing_line %}<input type="hidden" name="id" value="{{ editing_line.pk }}">{% endif %}
+    {% if outdoor_only %}<input type="hidden" name="outdoor_only" value="1">{% endif %}
+    {{ line_form.parent_line }}
     {{ line_form.non_field_errors }}
+    {% if not hide_family %}
     <label>
         <span data-i18n="family">Family</span>
         {{ line_form.family }}
     </label>
+    {% endif %}
+    {% if not outdoor_only %}
     <label>
-        <span data-i18n="subFamily">Sub-family</span>
+        <span data-i18n="designLine">Design line</span>
         {{ line_form.sub_family }}
     </label>
+    {% endif %}
     <label>
         <span data-i18n="manufacturer">Manufacturer</span>
         {{ line_form.manufacturer }}
@@ -24,6 +30,7 @@
         {{ line_form.quantity }}
         {{ line_form.quantity.errors }}
     </label>
+    {% if not outdoor_only %}
     <label>
         <span>{{ line_form.extra_tubing }} <span data-i18n="extraTubing">Extra tubing</span></span>
     </label>
@@ -32,6 +39,7 @@
         {{ line_form.tubing_length }}
         {{ line_form.tubing_length.errors }}
     </label>
+    {% endif %}
     <div class="drawer-actions">
         {% if editing_line %}
         <button type="submit" name="action" value="delete_line" class="btn danger" data-i18n="delete">Delete</button>

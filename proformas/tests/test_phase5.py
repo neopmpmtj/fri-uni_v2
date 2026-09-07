@@ -25,12 +25,12 @@ def test_line_tubing_formula(staff_user, site, indoor, tubing):
         extra_tubing=True,
         tubing_length=tubing,
     )
-    # 2 × (500 + 40) = 1080
+    # 2 × (500 + 40) indoor + 550 outdoor = 1630
     assert line.line_total == Decimal("1080.00")
     proforma.refresh_from_db()
     assert proforma.tubing_total == Decimal("80.00")
     assert proforma.extra_tubing_metres == Decimal("10.00")
-    assert proforma.equipment_subtotal == Decimal("1000.00")
+    assert proforma.equipment_subtotal == Decimal("1550.00")
 
 
 def test_discount_ignores_tubing_and_labour(staff_user, site, indoor, tubing):
@@ -46,9 +46,9 @@ def test_discount_ignores_tubing_and_labour(staff_user, site, indoor, tubing):
         tubing_length=tubing,
     )
     proforma.refresh_from_db()
-    # equipment 500, discount 50, tubing 40, labour 50 -> 540
-    assert proforma.discount_amount == Decimal("50.00")
-    assert proforma.grand_total == Decimal("540.00")
+    # equipment 500 indoor + 550 outdoor, discount 105, tubing 40, labour 50 -> 1035
+    assert proforma.discount_amount == Decimal("105.00")
+    assert proforma.grand_total == Decimal("1035.00")
 
 
 def test_extra_tubing_metres_sums_quantity_times_length(staff_user, site, indoor, tubing):

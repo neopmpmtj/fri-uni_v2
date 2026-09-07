@@ -1,5 +1,7 @@
 from decimal import Decimal
 
+from django.core.exceptions import ValidationError
+
 from accounts.models import User
 from proformas.models import (
     Brand,
@@ -7,6 +9,7 @@ from proformas.models import (
     ContactPosition,
     Family,
     Item,
+    ItemMatch,
     Parameter,
     Power,
     Proforma,
@@ -29,13 +32,10 @@ SIMPLE_BRANDS = ("Mitsubishi", "LG", "Nippon")
 SIMPLE_SUBFAMILY = "Split"
 BTUS = (9000, 12000, 18000)
 INDOOR_PRICES = {9000: "500.00", 12000: "650.00", 18000: "800.00"}
-OUTDOOR_PRICES = {9000: "550.00", 12000: "700.00", 18000: "900.00"}
 
 FAMILY_AC = "Air conditioners"
-FAMILY_UNDERFLOOR = "Underfloor heating"
-FAMILY_DHW = "Domestic hot water"
 
-AC_SUBFAMILIES = (
+DESIGN_LINES = (
     "Split",
     "Sensira",
     "Comfora",
@@ -46,9 +46,9 @@ AC_SUBFAMILIES = (
     "Ururu Sarara",
 )
 
-# Named ranges from Daikin PT air-to-air heat pumps (bombas de calor ar-ar):
+# Named indoor design lines from Daikin PT air-to-air heat pumps:
 # https://www.daikin.pt/pt_pt/particular/products-and-advice/product-categories/heat-pumps/air-to-air-heat-pumps.html
-DAIKIN_SUBFAMILIES = (
+DAIKIN_DESIGN_LINES = (
     "Sensira",
     "Comfora",
     "Perfera",
@@ -66,15 +66,13 @@ DAIKIN_INDOOR = {
     "Emura": {9000: "680.00", 12000: "860.00", 18000: "1050.00"},
     "Ururu Sarara": {9000: "750.00", 12000: "950.00", 18000: "1200.00"},
 }
-DAIKIN_OUTDOOR = {
-    "Sensira": {9000: "500.00", 12000: "630.00", 18000: "780.00"},
-    "Comfora": {9000: "530.00", 12000: "670.00", 18000: "820.00"},
-    "Perfera": {9000: "600.00", 12000: "750.00", 18000: "920.00"},
-    "Perfera Floor": {9000: "630.00", 12000: "790.00", 18000: "980.00"},
-    "Stylish": {9000: "670.00", 12000: "840.00", 18000: "1020.00"},
-    "Emura": {9000: "740.00", 12000: "920.00", 18000: "1120.00"},
-    "Ururu Sarara": {9000: "820.00", 12000: "1020.00", 18000: "1280.00"},
+SPLIT_OUTDOOR_PRICES = {
+    "Mitsubishi": {9000: "550.00", 12000: "700.00", 18000: "900.00"},
+    "LG": {9000: "550.00", 12000: "700.00", 18000: "900.00"},
+    "Nippon": {9000: "550.00", 12000: "700.00", 18000: "900.00"},
+    "Daikin": {9000: "500.00", 12000: "630.00", 18000: "780.00"},
 }
+DAIKIN_MULTI_OUTDOOR_PRICE = "1400.00"
 
 BRAND_CODE = {
     "Mitsubishi": "MIT",
@@ -212,11 +210,15 @@ def _live_get_or_create(model, defaults=None, **lookup):
     return model.objects.create(**data), True
 
 
-def _item_code(brand_name, sub_family_name, kind, power_amount):
+def _indoor_code(brand_name, design_line_name, power_amount):
     brand = BRAND_CODE.get(brand_name, brand_name[:3].upper())
-    sub = SUBFAMILY_CODE.get(sub_family_name, sub_family_name[:3].upper())
-    kind_ch = "I" if kind == Item.Kind.INDOOR else "O"
-    return f"{brand}-{sub}-{kind_ch}-{int(power_amount) // 1000}"
+    sub = SUBFAMILY_CODE.get(design_line_name, design_line_name[:3].upper())
+    return f"{brand}-{sub}-I-{int(power_amount) // 1000}"
+
+
+def _outdoor_code(brand_name, ports, power_amount):
+    brand = BRAND_CODE.get(brand_name, brand_name[:3].upper())
+    return f"{brand}-O{ports}-{int(power_amount) // 1000}"
 
 
 def _seed_powers():
@@ -229,44 +231,61 @@ def _seed_powers():
     return by_amount
 
 
-def _seed_capacity_items(
-    brand, sub_family, indoor_prices, outdoor_prices, vat_rate, powers_by_amount
-):
+def _seed_indoor_items(brand, design_line, prices, vat_rate, powers_by_amount):
+    items = []
     for amount in BTUS:
         power = powers_by_amount[amount]
         indoor_defaults = {
-            "list_price": Decimal(indoor_prices[amount]),
-            "internal_code": _item_code(
-                brand.name, sub_family.name, Item.Kind.INDOOR, amount
-            ),
+            "list_price": Decimal(prices[amount]),
+            "internal_code": _indoor_code(brand.name, design_line.name, amount),
             "vat_rate": vat_rate,
             "power": power,
+            "max_indoor_ports": None,
         }
         if amount == 9000:
             indoor_defaults["max_volume_m3"] = Decimal("20")
-        _live_get_or_create(
+        item, _ = _live_get_or_create(
             Item,
             defaults=indoor_defaults,
             brand=brand,
-            sub_family=sub_family,
+            sub_family=design_line,
             kind=Item.Kind.INDOOR,
             power=power,
         )
-        _live_get_or_create(
+        items.append(item)
+    return items
+
+
+def _seed_split_outdoors(brand, vat_rate, powers_by_amount):
+    prices = SPLIT_OUTDOOR_PRICES[brand.name]
+    outdoors = {}
+    for amount in BTUS:
+        power = powers_by_amount[amount]
+        item, _ = _live_get_or_create(
             Item,
             defaults={
-                "list_price": Decimal(outdoor_prices[amount]),
-                "internal_code": _item_code(
-                    brand.name, sub_family.name, Item.Kind.OUTDOOR, amount
-                ),
+                "list_price": Decimal(prices[amount]),
+                "internal_code": _outdoor_code(brand.name, 1, amount),
                 "vat_rate": vat_rate,
                 "power": power,
+                "sub_family": None,
             },
             brand=brand,
-            sub_family=sub_family,
             kind=Item.Kind.OUTDOOR,
             power=power,
+            max_indoor_ports=1,
         )
+        outdoors[amount] = item
+    return outdoors
+
+
+def _seed_match(outdoor, indoor, *, is_default=False):
+    _live_get_or_create(
+        ItemMatch,
+        defaults={"is_default": is_default},
+        outdoor=outdoor,
+        indoor=indoor,
+    )
 
 
 def _seed_contact_positions():
@@ -300,47 +319,82 @@ def seed_catalog():
     powers_by_amount = _seed_powers()
 
     ac, _ = _live_get_or_create(Family, defaults={"is_default": True}, name=FAMILY_AC)
-    _live_get_or_create(Family, name=FAMILY_UNDERFLOOR)
-    _live_get_or_create(Family, name=FAMILY_DHW)
 
     daikin, _ = _live_get_or_create(Brand, name="Daikin")
     sub_by_name = {}
-    for name in AC_SUBFAMILIES:
+    for name in DESIGN_LINES:
         defaults = {"is_default": name == SIMPLE_SUBFAMILY}
-        if name in DAIKIN_SUBFAMILIES:
+        if name in DAIKIN_DESIGN_LINES:
             defaults["brand"] = daikin
         sub, created = _live_get_or_create(
             SubFamily, defaults=defaults, family=ac, name=name
         )
         if (
             not created
-            and name in DAIKIN_SUBFAMILIES
+            and name in DAIKIN_DESIGN_LINES
             and sub.brand_id != daikin.pk
         ):
             sub.brand = daikin
             sub.save(update_fields=["brand"])
         sub_by_name[name] = sub
 
+    all_indoors = []
+    split_outdoors = {}
     for name in SIMPLE_BRANDS:
         brand, _ = _live_get_or_create(Brand, name=name)
-        _seed_capacity_items(
+        indoors = _seed_indoor_items(
             brand,
             sub_by_name[SIMPLE_SUBFAMILY],
             INDOOR_PRICES,
-            OUTDOOR_PRICES,
             vat23,
             powers_by_amount,
         )
+        all_indoors.extend(indoors)
+        split_outdoors[brand.name] = _seed_split_outdoors(
+            brand, vat23, powers_by_amount
+        )
 
-    for sub_name in DAIKIN_SUBFAMILIES:
-        _seed_capacity_items(
+    daikin_indoors = []
+    for sub_name in DAIKIN_DESIGN_LINES:
+        indoors = _seed_indoor_items(
             daikin,
             sub_by_name[sub_name],
             DAIKIN_INDOOR[sub_name],
-            DAIKIN_OUTDOOR[sub_name],
             vat23,
             powers_by_amount,
         )
+        daikin_indoors.extend(indoors)
+        all_indoors.extend(indoors)
+    split_outdoors["Daikin"] = _seed_split_outdoors(
+        daikin, vat23, powers_by_amount
+    )
+
+    for indoor in all_indoors:
+        outdoor = split_outdoors[indoor.brand.name][indoor.power.power]
+        _seed_match(outdoor, indoor, is_default=True)
+
+    multi, _ = _live_get_or_create(
+        Item,
+        defaults={
+            "list_price": Decimal(DAIKIN_MULTI_OUTDOOR_PRICE),
+            "internal_code": _outdoor_code("Daikin", 2, 18000),
+            "vat_rate": vat23,
+            "power": powers_by_amount[18000],
+            "sub_family": None,
+        },
+        brand=daikin,
+        kind=Item.Kind.OUTDOOR,
+        power=powers_by_amount[18000],
+        max_indoor_ports=2,
+    )
+    for indoor in daikin_indoors:
+        if indoor.power.power in (9000, 12000) and indoor.sub_family.name in (
+            "Emura",
+            "Sensira",
+            "Comfora",
+            "Perfera",
+        ):
+            _seed_match(multi, indoor, is_default=False)
 
     for length, price in TUBING:
         _live_get_or_create(
@@ -374,11 +428,21 @@ def _ensure_user(email, password, *, role, is_superuser=False, reset_password=Fa
     return User.objects.create_user(email=email, password=password, role=role)
 
 
-def _catalog_item(brand, sub_family, kind, power_amount):
+def _catalog_indoor(brand, design_line, power_amount):
     return Item.objects.get(
         brand__name=brand,
-        sub_family__name=sub_family,
-        kind=kind,
+        sub_family__name=design_line,
+        kind=Item.Kind.INDOOR,
+        power__power=power_amount,
+        power__unit="BTU",
+    )
+
+
+def _catalog_outdoor(brand, ports, power_amount):
+    return Item.objects.get(
+        brand__name=brand,
+        kind=Item.Kind.OUTDOOR,
+        max_indoor_ports=ports,
         power__power=power_amount,
         power__unit="BTU",
     )
@@ -454,16 +518,28 @@ def _seed_clients_and_sites(actor):
     return sites_by_alias
 
 
-def _add_lines(proforma, actor, lines):
-    for row in lines:
-        add_line(
-            proforma,
-            _catalog_item(row["brand"], row["style"], row["kind"], row["btu"]),
-            actor,
-            quantity=row.get("quantity", 1),
-            extra_tubing=row.get("extra_tubing", False),
-            tubing_length=_tubing(row["tubing"]) if row.get("tubing") else None,
+def _add_lines(proforma, actor, systems):
+    for system in systems:
+        outdoor = _catalog_outdoor(
+            system["brand"], system["ports"], system["outdoor_btu"]
         )
+        parent = add_line(proforma, outdoor, actor, quantity=system.get("quantity", 1))
+        for indoor_row in system["indoors"]:
+            add_line(
+                proforma,
+                _catalog_indoor(
+                    indoor_row.get("brand", system["brand"]),
+                    indoor_row["design"],
+                    indoor_row["btu"],
+                ),
+                actor,
+                quantity=indoor_row.get("quantity", 1),
+                extra_tubing=indoor_row.get("extra_tubing", False),
+                tubing_length=_tubing(indoor_row["tubing"])
+                if indoor_row.get("tubing")
+                else None,
+                parent_line=parent,
+            )
 
 
 def _ensure_proforma(site, actor, *, status, lines, accepted=False, rejected=False, **draft_kwargs):
@@ -510,37 +586,35 @@ def seed_demo(*, password=DEMO_PASSWORD, reset_password=False):
     )
     sites = _seed_clients_and_sites(manager)
 
-    indoor = Item.Kind.INDOOR
-    outdoor = Item.Kind.OUTDOOR
-
     _ensure_proforma(
         sites["Moradia Cascais"],
         manager,
         status=Proforma.Status.ISSUED,
         extra_labour="250.00",
         observations=(
-            "House install: Emura in the main bedroom with extra tubing, "
-            "and a 9k unit in the suite also with extra tubing."
+            "House install: one Daikin 2-port outdoor with Emura in the main "
+            "bedroom (extra tubing) and a 9k Emura in the suite (extra tubing)."
         ),
         lines=(
             {
                 "brand": "Daikin",
-                "style": "Emura",
-                "kind": indoor,
-                "btu": 12000,
-                "extra_tubing": True,
-                "tubing": "5.00",
+                "ports": 2,
+                "outdoor_btu": 18000,
+                "indoors": (
+                    {
+                        "design": "Emura",
+                        "btu": 12000,
+                        "extra_tubing": True,
+                        "tubing": "5.00",
+                    },
+                    {
+                        "design": "Emura",
+                        "btu": 9000,
+                        "extra_tubing": True,
+                        "tubing": "3.00",
+                    },
+                ),
             },
-            {"brand": "Daikin", "style": "Emura", "kind": outdoor, "btu": 12000},
-            {
-                "brand": "Daikin",
-                "style": "Emura",
-                "kind": indoor,
-                "btu": 9000,
-                "extra_tubing": True,
-                "tubing": "3.00",
-            },
-            {"brand": "Daikin", "style": "Emura", "kind": outdoor, "btu": 9000},
         ),
     )
     _ensure_proforma(
@@ -549,8 +623,12 @@ def seed_demo(*, password=DEMO_PASSWORD, reset_password=False):
         status=Proforma.Status.DRAFT,
         observations="Draft: extra tubing on entrance B still to confirm.",
         lines=(
-            {"brand": "Mitsubishi", "style": "Split", "kind": indoor, "btu": 9000},
-            {"brand": "Mitsubishi", "style": "Split", "kind": outdoor, "btu": 9000},
+            {
+                "brand": "Mitsubishi",
+                "ports": 1,
+                "outdoor_btu": 9000,
+                "indoors": ({"design": "Split", "btu": 9000},),
+            },
         ),
     )
     _ensure_proforma(
@@ -564,13 +642,17 @@ def seed_demo(*, password=DEMO_PASSWORD, reset_password=False):
         lines=(
             {
                 "brand": "LG",
-                "style": "Split",
-                "kind": indoor,
-                "btu": 18000,
-                "extra_tubing": True,
-                "tubing": "10.00",
+                "ports": 1,
+                "outdoor_btu": 18000,
+                "indoors": (
+                    {
+                        "design": "Split",
+                        "btu": 18000,
+                        "extra_tubing": True,
+                        "tubing": "10.00",
+                    },
+                ),
             },
-            {"brand": "LG", "style": "Split", "kind": outdoor, "btu": 18000},
         ),
     )
     _ensure_proforma(
@@ -580,8 +662,12 @@ def seed_demo(*, password=DEMO_PASSWORD, reset_password=False):
         rejected=True,
         observations="Client declined this quote.",
         lines=(
-            {"brand": "Daikin", "style": "Comfora", "kind": indoor, "btu": 9000},
-            {"brand": "Daikin", "style": "Comfora", "kind": outdoor, "btu": 9000},
+            {
+                "brand": "Daikin",
+                "ports": 1,
+                "outdoor_btu": 9000,
+                "indoors": ({"design": "Comfora", "btu": 9000},),
+            },
         ),
     )
     _ensure_proforma(
@@ -589,20 +675,28 @@ def seed_demo(*, password=DEMO_PASSWORD, reset_password=False):
         manager,
         status=Proforma.Status.DRAFT,
         extra_labour="120.00",
-        observations="Spa draft: Perfera Floor. Waiting on measurements.",
+        observations="Spa draft: Perfera Floor split. Waiting on measurements.",
         lines=(
-            {"brand": "Daikin", "style": "Perfera Floor", "kind": indoor, "btu": 12000},
-            {"brand": "Daikin", "style": "Perfera Floor", "kind": outdoor, "btu": 12000},
+            {
+                "brand": "Daikin",
+                "ports": 1,
+                "outdoor_btu": 12000,
+                "indoors": ({"design": "Perfera Floor", "btu": 12000},),
+            },
         ),
     )
     _ensure_proforma(
         sites["Receção"],
         manager,
         status=Proforma.Status.ISSUED,
-        observations="Lobby Sensira pair — issued, not accepted (test Change button).",
+        observations="Lobby Sensira split — issued, not accepted (test Change button).",
         lines=(
-            {"brand": "Daikin", "style": "Sensira", "kind": indoor, "btu": 12000},
-            {"brand": "Daikin", "style": "Sensira", "kind": outdoor, "btu": 12000},
+            {
+                "brand": "Daikin",
+                "ports": 1,
+                "outdoor_btu": 12000,
+                "indoors": ({"design": "Sensira", "btu": 12000},),
+            },
         ),
     )
     cascais = (

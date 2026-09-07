@@ -243,7 +243,7 @@ class Family(AuditedModel):
 
 
 class SubFamily(AuditedModel):
-    """Named range under a family (was Style). Optional manufacturer."""
+    """Indoor design line under a family (data-points table `sub_families`)."""
 
     family = models.ForeignKey(
         Family, on_delete=models.PROTECT, related_name="sub_families"
@@ -346,7 +346,11 @@ class Item(AuditedModel):
         OUTDOOR = "outdoor", "Outdoor"
 
     sub_family = models.ForeignKey(
-        SubFamily, on_delete=models.PROTECT, related_name="items"
+        SubFamily,
+        on_delete=models.PROTECT,
+        related_name="items",
+        null=True,
+        blank=True,
     )
     brand = models.ForeignKey(Brand, on_delete=models.PROTECT, related_name="items")
     vat_rate = models.ForeignKey(
@@ -356,6 +360,11 @@ class Item(AuditedModel):
     kind = models.CharField(max_length=16, choices=Kind.choices)
     power = models.ForeignKey(
         Power, on_delete=models.PROTECT, related_name="items"
+    )
+    max_indoor_ports = models.PositiveSmallIntegerField(
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(1)],
     )
     max_volume_m3 = models.DecimalField(
         max_digits=8, decimal_places=2, null=True, blank=True
@@ -372,21 +381,69 @@ class Item(AuditedModel):
             ),
             UniqueConstraint(
                 fields=["sub_family", "brand"],
-                condition=Q(deleted_at__isnull=True, is_default=True),
-                name="uniq_live_default_item_per_subfamily_brand",
+                condition=Q(
+                    deleted_at__isnull=True,
+                    is_default=True,
+                    kind="indoor",
+                ),
+                name="uniq_live_default_indoor_per_design_brand",
             ),
             UniqueConstraint(
-                fields=["sub_family", "brand", "kind", "power"],
-                condition=Q(deleted_at__isnull=True),
-                name="uniq_live_item_identity",
+                fields=["brand", "max_indoor_ports"],
+                condition=Q(
+                    deleted_at__isnull=True,
+                    is_default=True,
+                    kind="outdoor",
+                ),
+                name="uniq_live_default_outdoor_per_brand_ports",
+            ),
+            UniqueConstraint(
+                fields=["sub_family", "brand", "power"],
+                condition=Q(deleted_at__isnull=True, kind="indoor"),
+                name="uniq_live_indoor_identity",
+            ),
+            UniqueConstraint(
+                fields=["brand", "power", "max_indoor_ports"],
+                condition=Q(deleted_at__isnull=True, kind="outdoor"),
+                name="uniq_live_outdoor_identity",
             ),
         ]
 
     def __str__(self):
-        return (
-            f"{self.internal_code} — {self.sub_family.name} "
-            f"{self.kind} {self.power}"
-        )
+        if self.kind == self.Kind.OUTDOOR:
+            ports = self.max_indoor_ports or "?"
+            return f"{self.internal_code} — outdoor {ports}-port {self.power}"
+        design = self.sub_family.name if self.sub_family_id else ""
+        return f"{self.internal_code} — {design} indoor {self.power}"
+
+
+class ItemMatch(AuditedModel):
+    """Catalog compatibility (data-points table `item_matches`)."""
+
+    outdoor = models.ForeignKey(
+        Item, on_delete=models.PROTECT, related_name="indoor_matches"
+    )
+    indoor = models.ForeignKey(
+        Item, on_delete=models.PROTECT, related_name="outdoor_matches"
+    )
+    is_default = models.BooleanField(default=False)
+
+    class Meta:
+        constraints = [
+            UniqueConstraint(
+                fields=["outdoor", "indoor"],
+                condition=Q(deleted_at__isnull=True),
+                name="uniq_live_item_match",
+            ),
+            UniqueConstraint(
+                fields=["indoor"],
+                condition=Q(deleted_at__isnull=True, is_default=True),
+                name="uniq_live_default_match_per_indoor",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.outdoor.internal_code} + {self.indoor.internal_code}"
 
 
 class TubingLength(AuditedModel):
@@ -502,6 +559,13 @@ class ProformaLine(AuditedModel):
     proforma = models.ForeignKey(Proforma, on_delete=models.CASCADE, related_name="lines")
     item = models.ForeignKey(
         Item, on_delete=models.PROTECT, related_name="proforma_lines"
+    )
+    parent_line = models.ForeignKey(
+        "self",
+        null=True,
+        blank=True,
+        on_delete=models.PROTECT,
+        related_name="child_lines",
     )
     quantity = models.IntegerField(default=1)
     extra_tubing = models.BooleanField(default=False)

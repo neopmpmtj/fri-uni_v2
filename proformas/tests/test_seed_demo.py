@@ -44,6 +44,8 @@ def test_seed_demo_creates_users_clients_and_quotes():
     ).first()
     assert cascais is not None
     assert cascais.extra_tubing_metres == Decimal("8.00")
+    assert cascais.lines.filter(parent_line__isnull=True).count() == 1
+    assert cascais.lines.filter(parent_line__isnull=False).count() == 2
     revision = Proforma.objects.filter(replaces=cascais).first()
     assert revision is not None
     assert revision.extra_tubing_metres == Decimal("8.00")

@@ -53,6 +53,7 @@ ITEM_SORT_FIELDS = {
     "manufacturer": ["brand__name"],
     "kind": ["kind"],
     "power": ["power__power", "power__unit"],
+    "ports": ["max_indoor_ports"],
 }
 
 PROFORMA_SORT_FIELDS = {
@@ -330,6 +331,9 @@ def proforma_detail(request, pk):
     )
     line_form = ProformaLineForm()
     editing_line = None
+    parent_line = None
+    outdoor_only = False
+    hide_family = Family.objects.count() <= 1
 
     if request.method == "POST":
         action = request.POST.get("action")
@@ -366,7 +370,20 @@ def proforma_detail(request, pk):
                     if pk_line
                     else None
                 )
-                line_form = ProformaLineForm(request.POST, instance=instance)
+                parent_pk = request.POST.get("parent_line")
+                parent_line = None
+                if parent_pk:
+                    parent_line = get_object_or_404(
+                        ProformaLine, pk=parent_pk, proforma=proforma
+                    )
+                outdoor_only = request.POST.get("outdoor_only") == "1"
+                line_form = ProformaLineForm(
+                    request.POST,
+                    instance=instance,
+                    parent_line=parent_line,
+                    outdoor_only=outdoor_only,
+                    hide_family=hide_family,
+                )
                 if line_form.is_valid():
                     data = line_form.cleaned_data
                     if instance:
@@ -377,6 +394,7 @@ def proforma_detail(request, pk):
                             quantity=data["quantity"],
                             extra_tubing=data["extra_tubing"],
                             tubing_length=data["tubing_length"],
+                            parent_line=data.get("parent_line") or parent_line,
                         )
                     else:
                         services.add_line(
@@ -386,6 +404,7 @@ def proforma_detail(request, pk):
                             quantity=data["quantity"],
                             extra_tubing=data["extra_tubing"],
                             tubing_length=data["tubing_length"],
+                            parent_line=data.get("parent_line") or parent_line,
                         )
                     return redirect("proforma_detail", pk=proforma.pk)
                 editing_line = instance
@@ -425,13 +444,38 @@ def proforma_detail(request, pk):
         editing_line = get_object_or_404(
             ProformaLine, pk=request.GET["line"], proforma=proforma
         )
-        line_form = ProformaLineForm(instance=editing_line)
+        parent_line = editing_line.parent_line
+        outdoor_only = (
+            editing_line.item.kind == Item.Kind.OUTDOOR
+            and (editing_line.item.max_indoor_ports or 0) >= 2
+        )
+        line_form = ProformaLineForm(
+            instance=editing_line,
+            parent_line=parent_line,
+            outdoor_only=outdoor_only,
+            hide_family=hide_family,
+        )
+    elif request.GET.get("parent"):
+        parent_line = get_object_or_404(
+            ProformaLine, pk=request.GET["parent"], proforma=proforma
+        )
+        line_form = ProformaLineForm(
+            parent_line=parent_line, hide_family=hide_family
+        )
+    elif request.GET.get("new_line") == "multi":
+        outdoor_only = True
+        line_form = ProformaLineForm(
+            outdoor_only=True, hide_family=hide_family
+        )
+    elif request.GET.get("new_line"):
+        line_form = ProformaLineForm(hide_family=hide_family)
 
-    lines = proforma.lines.select_related(
-        "item__sub_family__family", "item__brand", "item__power", "tubing_length"
-    ).order_by("pk")
+    lines = services.grouped_proforma_lines(proforma)
     drawer_open = bool(
-        editing_line or line_form.errors or request.GET.get("new_line")
+        editing_line
+        or line_form.errors
+        or request.GET.get("new_line")
+        or request.GET.get("parent")
     )
     is_draft = proforma.status == Proforma.Status.DRAFT
     if not is_draft:
@@ -446,6 +490,9 @@ def proforma_detail(request, pk):
             "header_form": header_form,
             "line_form": line_form,
             "editing_line": editing_line,
+            "parent_line": parent_line,
+            "outdoor_only": outdoor_only,
+            "hide_family": hide_family,
             "drawer_open": drawer_open,
             "is_draft": is_draft,
             "is_issued": proforma.status == Proforma.Status.ISSUED,
@@ -480,7 +527,7 @@ def proforma_quote(request, pk):
         "proformas/quote.html",
         {
             "proforma": proforma,
-            "lines": proforma.lines.all(),
+            "lines": services.grouped_proforma_lines(proforma),
             "labels": quote_labels(lang),
             "company_name": "fri-uni",
             "nav_active": "proformas",
@@ -552,6 +599,14 @@ def _drawer_list(
                         save_fn(obj, request.user)
                     elif isinstance(obj, Item):
                         services.save_item(obj, request.user)
+                        services.sync_item_matches(
+                            obj,
+                            default_outdoor=form.cleaned_data.get("default_outdoor"),
+                            compatible_indoors=form.cleaned_data.get(
+                                "compatible_indoors"
+                            ),
+                            user=request.user,
+                        )
                     else:
                         services.save_audited(obj, request.user)
                 except IntegrityError:
@@ -729,7 +784,10 @@ def item_list(request):
     if q:
         rows = rows.filter(internal_code__icontains=q)
     if family_id:
-        rows = rows.filter(sub_family__family_id=family_id)
+        rows = rows.filter(
+            Q(sub_family__family_id=family_id)
+            | Q(kind=Item.Kind.OUTDOOR, sub_family__isnull=True)
+        )
     if brand_id:
         rows = rows.filter(brand_id=brand_id)
     extra = {
@@ -742,6 +800,7 @@ def item_list(request):
         "sort": sort_ctx["sort"],
         "dir": sort_ctx["dir"],
         "sort_urls": sort_ctx["sort_urls"],
+        "hide_family": Family.objects.count() <= 1,
     }
     return _drawer_list(
         request,

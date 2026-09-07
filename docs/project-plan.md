@@ -371,7 +371,6 @@ Do not implement in these phases:
 - Google OAuth login
 - Client portal, public site, mobile, shared HTTP API
 - Official invoices, payments, tax, accounting export
-- `model_default_matches` (indoor/outdoor auto-pair)
 - Stock, supplier POs, install calendar
 - Unlocking or revising issued proformas
 - Dark/light theme (warehouse has it; skip unless asked)
@@ -385,6 +384,7 @@ Do not implement in these phases:
 - [x] Crash/freeze review + H/M/L remediations from [`error-dead-ends-2026-09-07-1238.md`](reviews/error-dead-ends-2026-09-07-1238.md) (completed 2026-09-07)
 - [x] Proforma list Accept / Reject / Clear so staff need not Change an issued quote to mark outcome (completed 2026-09-07)
 - [x] Line drawer: hide tubing length until extra tubing; default shortest length; store `extra_tubing_metres` on the proforma (completed 2026-09-07)
+- [x] AC pairing: indoor design lines, outdoor ports, `item_matches`, grouped quote lines, rewrite seed (completed 2026-09-07)
 
 ## Tests policy
 

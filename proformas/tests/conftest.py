@@ -9,6 +9,7 @@ from proformas.models import (
     ContactPosition,
     Family,
     Item,
+    ItemMatch,
     Parameter,
     Power,
     Site,
@@ -78,7 +79,7 @@ def indoor(db):
     power, _ = Power.objects.get_or_create(
         power=9000, unit="BTU"
     )
-    return Item.objects.create(
+    indoor = Item.objects.create(
         sub_family=sub,
         brand=brand,
         vat_rate=vat,
@@ -88,6 +89,18 @@ def indoor(db):
         max_volume_m3=Decimal("20"),
         list_price=Decimal("500.00"),
     )
+    outdoor = Item.objects.create(
+        sub_family=None,
+        brand=brand,
+        vat_rate=vat,
+        power=power,
+        internal_code="MIT-O1-9",
+        kind=Item.Kind.OUTDOOR,
+        max_indoor_ports=1,
+        list_price=Decimal("550.00"),
+    )
+    ItemMatch.objects.create(outdoor=outdoor, indoor=indoor, is_default=True)
+    return indoor
 
 
 @pytest.fixture

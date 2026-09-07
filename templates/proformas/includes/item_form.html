@@ -2,12 +2,19 @@
     {% csrf_token %}
     {% if editing %}<input type="hidden" name="id" value="{{ editing.pk }}">{% endif %}
     {{ form.non_field_errors }}
+    {% if not hide_family %}
     <label>
         <span data-i18n="family">Family</span>
         {{ form.family }}
     </label>
+    {% endif %}
     <label>
-        <span data-i18n="subFamily">Sub-family</span>
+        <span data-i18n="kind">Kind</span>
+        {{ form.kind }}
+        {{ form.kind.errors }}
+    </label>
+    <label class="item-indoor-field">
+        <span data-i18n="designLine">Design line</span>
         {{ form.sub_family }}
         {{ form.sub_family.errors }}
     </label>
@@ -22,16 +29,16 @@
         {{ form.internal_code.errors }}
     </label>
     <label>
-        <span data-i18n="kind">Kind</span>
-        {{ form.kind }}
-        {{ form.kind.errors }}
-    </label>
-    <label>
         <span data-i18n="power">Power</span>
         {{ form.power }}
         {{ form.power.errors }}
     </label>
-    <label>
+    <label class="item-outdoor-field">
+        <span data-i18n="maxIndoorPorts">Max indoor ports</span>
+        {{ form.max_indoor_ports }}
+        {{ form.max_indoor_ports.errors }}
+    </label>
+    <label class="item-indoor-field">
         <span data-i18n="maxVolumeM3">Max volume m3</span>
         {{ form.max_volume_m3 }}
         {{ form.max_volume_m3.errors }}
@@ -40,6 +47,16 @@
         <span data-i18n="vat">VAT</span>
         {{ form.vat_rate }}
         {{ form.vat_rate.errors }}
+    </label>
+    <label class="item-indoor-field">
+        <span data-i18n="defaultSplitOutdoor">Default split outdoor</span>
+        {{ form.default_outdoor }}
+        {{ form.default_outdoor.errors }}
+    </label>
+    <label class="item-outdoor-field">
+        <span data-i18n="compatibleIndoors">Compatible indoors</span>
+        {{ form.compatible_indoors }}
+        {{ form.compatible_indoors.errors }}
     </label>
     <label>
         <span>{{ form.is_default }} <span data-i18n="default">Default</span></span>

@@ -24,7 +24,7 @@ def test_cli_creates_draft_with_created_by(staff_user, site, indoor):
     proforma = Proforma.objects.get(number=out.getvalue().strip())
     assert proforma.created_by == staff_user
     assert proforma.status == Proforma.Status.DRAFT
-    assert proforma.lines.count() == 1
+    assert proforma.lines.count() == 2
     assert ActivityLog.objects.filter(
         action="create_proforma", object_id=proforma.pk
     ).exists()

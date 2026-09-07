@@ -58,6 +58,7 @@ class Command(BaseCommand):
         try:
             with transaction.atomic():
                 proforma = create_draft(site, user, **draft_kwargs)
+                current_outdoor = None
                 for spec in options["line"]:
                     parts = spec.split(":")
                     if len(parts) not in (2, 3):
@@ -94,14 +95,24 @@ class Command(BaseCommand):
                                 f"Unknown tubing length {parts[2]}"
                             ) from exc
                         extra = True
-                    add_line(
+                    parent = (
+                        current_outdoor
+                        if item.kind == Item.Kind.INDOOR and current_outdoor is not None
+                        else None
+                    )
+                    line = add_line(
                         proforma,
                         item,
                         user,
                         quantity=quantity,
                         extra_tubing=extra,
                         tubing_length=tubing,
+                        parent_line=parent,
                     )
+                    if item.kind == Item.Kind.OUTDOOR:
+                        current_outdoor = line
+                    elif line.parent_line_id:
+                        current_outdoor = line.parent_line
                 if options["issue"]:
                     issue_proforma(proforma, user)
         except ValidationError as exc:

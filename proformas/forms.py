@@ -8,6 +8,7 @@ from .models import (
     Country,
     Family,
     Item,
+    ItemMatch,
     Parameter,
     Power,
     ProformaLine,
@@ -23,6 +24,7 @@ from .services import (
     percent_to_rate,
     validate_internal_code,
     validate_item_identity,
+    validate_item_kind_fields,
     validate_phone_number,
     validate_power_uniqueness,
     validate_tax_number,
@@ -269,8 +271,13 @@ class DataDefaultSelect(forms.Select):
             if instance.brand_id:
                 option["attrs"]["data-brand"] = str(instance.brand_id)
         if isinstance(instance, Item):
-            option["attrs"]["data-sub-family"] = str(instance.sub_family_id)
+            option["attrs"]["data-sub-family"] = (
+                str(instance.sub_family_id) if instance.sub_family_id else ""
+            )
             option["attrs"]["data-brand"] = str(instance.brand_id)
+            option["attrs"]["data-kind"] = instance.kind
+            if instance.max_indoor_ports:
+                option["attrs"]["data-ports"] = str(instance.max_indoor_ports)
         return option
 
 
@@ -285,17 +292,39 @@ class ProformaLineForm(forms.ModelForm):
     manufacturer = forms.ModelChoiceField(
         queryset=Brand.objects.none(), required=False, widget=DataDefaultSelect
     )
+    parent_line = forms.ModelChoiceField(
+        queryset=ProformaLine.objects.none(), required=False, widget=forms.HiddenInput
+    )
 
     class Meta:
         model = ProformaLine
         fields = ("item", "quantity", "extra_tubing", "tubing_length")
         widgets = {"item": DataDefaultSelect}
 
-    def __init__(self, *args, **kwargs):
+    def __init__(
+        self,
+        *args,
+        parent_line=None,
+        outdoor_only=False,
+        hide_family=False,
+        **kwargs,
+    ):
         super().__init__(*args, **kwargs)
+        self.parent_line_obj = parent_line
+        self.outdoor_only = outdoor_only
+        self.hide_family = hide_family
         items = Item.objects.select_related(
             "sub_family__family", "brand", "power"
         ).order_by("internal_code")
+        if outdoor_only:
+            items = items.filter(kind=Item.Kind.OUTDOOR, max_indoor_ports__gte=2)
+        elif parent_line is not None:
+            indoor_ids = ItemMatch.objects.filter(
+                outdoor=parent_line.item
+            ).values_list("indoor_id", flat=True)
+            items = items.filter(kind=Item.Kind.INDOOR, pk__in=indoor_ids)
+        else:
+            items = items.filter(kind=Item.Kind.INDOOR)
         self.fields["item"].queryset = items
         self.fields["item"].label_from_instance = (
             lambda obj: f"{obj.internal_code} — {obj.kind} {obj.power}"
@@ -307,6 +336,11 @@ class ProformaLineForm(forms.ModelForm):
         self.fields["manufacturer"].queryset = Brand.objects.order_by("name")
         self.fields["tubing_length"].queryset = TubingLength.objects.order_by("length")
         self.fields["tubing_length"].required = False
+        self.fields["parent_line"].queryset = ProformaLine.objects.all()
+        if parent_line is not None:
+            self.fields["parent_line"].initial = parent_line.pk
+        if outdoor_only:
+            self.fields["extra_tubing"].initial = False
         lengths = self.fields["tubing_length"].queryset
         if lengths.exists():
             self.fields["tubing_length"].empty_label = None
@@ -314,14 +348,25 @@ class ProformaLineForm(forms.ModelForm):
                 self.fields["tubing_length"].initial = lengths.first()
         if self.instance.pk and self.instance.item_id:
             item = self.instance.item
-            self.fields["family"].initial = item.sub_family.family_id
-            self.fields["sub_family"].initial = item.sub_family_id
+            if item.sub_family_id:
+                self.fields["family"].initial = item.sub_family.family_id
+                self.fields["sub_family"].initial = item.sub_family_id
             self.fields["manufacturer"].initial = item.brand_id
+            if self.instance.parent_line_id:
+                self.fields["parent_line"].initial = self.instance.parent_line_id
 
     def clean(self):
         cleaned = super().clean()
-        if cleaned.get("extra_tubing") and not cleaned.get("tubing_length"):
+        item = cleaned.get("item")
+        extra = cleaned.get("extra_tubing")
+        if extra and not cleaned.get("tubing_length"):
             raise ValidationError("Tubing length is required when extra tubing is needed.")
+        if item and item.kind == Item.Kind.OUTDOOR:
+            cleaned["extra_tubing"] = False
+            cleaned["tubing_length"] = None
+        parent = cleaned.get("parent_line") or self.parent_line_obj
+        if parent:
+            cleaned["parent_line"] = parent
         return cleaned
 
 
@@ -400,6 +445,12 @@ class ItemForm(forms.ModelForm):
     family = forms.ModelChoiceField(
         queryset=Family.objects.none(), required=False, widget=DataDefaultSelect
     )
+    default_outdoor = forms.ModelChoiceField(
+        queryset=Item.objects.none(), required=False
+    )
+    compatible_indoors = forms.ModelMultipleChoiceField(
+        queryset=Item.objects.none(), required=False
+    )
 
     class Meta:
         model = Item
@@ -410,6 +461,7 @@ class ItemForm(forms.ModelForm):
             "internal_code",
             "kind",
             "power",
+            "max_indoor_ports",
             "max_volume_m3",
             "is_default",
         )
@@ -421,18 +473,37 @@ class ItemForm(forms.ModelForm):
         self.fields["sub_family"].queryset = SubFamily.objects.select_related(
             "family", "brand"
         ).order_by("family__name", "name")
+        self.fields["sub_family"].required = False
         self.fields["brand"].queryset = Brand.objects.order_by("name")
         self.fields["brand"].required = False
         self.fields["power"].queryset = Power.objects.order_by("power", "unit")
         self.fields["power"].label_from_instance = lambda obj: str(obj)
         self.fields["vat_rate"].queryset = VatRate.objects.order_by("rate")
         self.fields["max_volume_m3"].required = False
+        self.fields["max_indoor_ports"].required = False
+        self.fields["default_outdoor"].queryset = Item.objects.filter(
+            kind=Item.Kind.OUTDOOR, max_indoor_ports=1
+        ).order_by("internal_code")
+        self.fields["compatible_indoors"].queryset = Item.objects.filter(
+            kind=Item.Kind.INDOOR
+        ).order_by("internal_code")
         if self.instance.pk and self.instance.sub_family_id:
             self.fields["family"].initial = self.instance.sub_family.family_id
         elif not self.instance.pk:
             default_vat = VatRate.objects.filter(is_default=True).first()
             if default_vat:
                 self.fields["vat_rate"].initial = default_vat.pk
+        if self.instance.pk:
+            if self.instance.kind == Item.Kind.INDOOR:
+                match = ItemMatch.objects.filter(
+                    indoor=self.instance, is_default=True
+                ).first()
+                if match:
+                    self.fields["default_outdoor"].initial = match.outdoor_id
+            else:
+                self.fields["compatible_indoors"].initial = ItemMatch.objects.filter(
+                    outdoor=self.instance
+                ).values_list("indoor_id", flat=True)
 
     def clean_internal_code(self):
         return validate_internal_code(
@@ -442,18 +513,33 @@ class ItemForm(forms.ModelForm):
 
     def clean(self):
         cleaned = super().clean()
+        kind = cleaned.get("kind")
         sub_family = cleaned.get("sub_family")
-        if sub_family and sub_family.brand_id:
-            cleaned["brand"] = sub_family.brand
-        elif not cleaned.get("brand"):
-            self.add_error("brand", "This field is required.")
-            return cleaned
+        if kind == Item.Kind.OUTDOOR:
+            cleaned["sub_family"] = None
+            cleaned["max_volume_m3"] = None
+            if not cleaned.get("brand"):
+                self.add_error("brand", "This field is required.")
+                return cleaned
+        else:
+            cleaned["max_indoor_ports"] = None
+            if sub_family and sub_family.brand_id:
+                cleaned["brand"] = sub_family.brand
+            elif not cleaned.get("brand"):
+                self.add_error("brand", "This field is required.")
+                return cleaned
         try:
+            validate_item_kind_fields(
+                kind=kind,
+                sub_family=cleaned.get("sub_family"),
+                max_indoor_ports=cleaned.get("max_indoor_ports"),
+            )
             validate_item_identity(
-                sub_family=sub_family,
+                sub_family=cleaned.get("sub_family"),
                 brand=cleaned.get("brand"),
-                kind=cleaned.get("kind"),
+                kind=kind,
                 power=cleaned.get("power"),
+                max_indoor_ports=cleaned.get("max_indoor_ports"),
                 exclude_item_id=self.instance.pk,
             )
         except ValidationError as exc:

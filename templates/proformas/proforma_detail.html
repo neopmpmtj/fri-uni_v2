@@ -3,7 +3,7 @@
 
 {% block extra_head %}
 <script src="{% static 'js/drawer.js' %}?v=1" defer></script>
-<script src="{% static 'js/line-form.js' %}?v=2" defer></script>
+<script src="{% static 'js/line-form.js' %}?v=3" defer></script>
 <script src="{% static 'js/proforma-detail.js' %}?v=2" defer></script>
 {% endblock %}
 
@@ -11,7 +11,8 @@
 
 {% block actions %}
 {% if is_draft %}
-<a class="btn primary" href="{% url 'proforma_detail' proforma.pk %}?new_line=1" data-i18n="addLine">Add line</a>
+<a class="btn primary" href="{% url 'proforma_detail' proforma.pk %}?new_line=1" data-i18n="addSplit">Add split</a>
+<a class="btn ghost" href="{% url 'proforma_detail' proforma.pk %}?new_line=multi" data-i18n="addMulti">Add multi</a>
 {% endif %}
 {% endblock %}
 
@@ -122,7 +123,7 @@
         </thead>
         <tbody>
             {% for line in lines %}
-            <tr>
+            <tr{% if line.parent_line_id %} class="line-child"{% endif %}>
                 <td>
                     {% if is_draft %}
                     {{ line.item }}
@@ -136,6 +137,9 @@
                 <td>
                     {% if is_draft %}
                     <a href="{% url 'proforma_detail' proforma.pk %}?line={{ line.pk }}" data-i18n="edit">Edit</a>
+                    {% if not line.parent_line_id and line.item.max_indoor_ports and line.item.max_indoor_ports >= 2 %}
+                    <a href="{% url 'proforma_detail' proforma.pk %}?parent={{ line.pk }}" data-i18n="addIndoor">Add indoor</a>
+                    {% endif %}
                     {% endif %}
                 </td>
             </tr>

@@ -7,15 +7,18 @@ document.addEventListener("DOMContentLoaded", function () {
     const subFamily = form.querySelector("#id_sub_family");
     const manufacturer = form.querySelector("#id_manufacturer");
     const item = form.querySelector("#id_item");
-    if (!family || !subFamily || !manufacturer || !item) {
+    if (!manufacturer || !item) {
         return;
     }
 
     function optionValue(select) {
-        return select.value;
+        return select ? select.value : "";
     }
 
     function filterSelect(select, keep) {
+        if (!select) {
+            return;
+        }
         const current = select.value;
         Array.prototype.forEach.call(select.options, function (opt) {
             if (!opt.value) {
@@ -36,18 +39,28 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function defaultOption(select) {
+        if (!select) {
+            return null;
+        }
         return Array.prototype.find.call(select.options, function (opt) {
             return opt.value && !opt.hidden && opt.getAttribute("data-default") === "1";
         });
     }
 
     function firstVisible(select) {
+        if (!select) {
+            return null;
+        }
         return Array.prototype.find.call(select.options, function (opt) {
             return opt.value && !opt.hidden;
         });
     }
 
     function lockManufacturer() {
+        if (!subFamily) {
+            manufacturer.disabled = false;
+            return;
+        }
         const selected = subFamily.options[subFamily.selectedIndex];
         const brandId =
             selected && selected.value ? selected.getAttribute("data-brand") || "" : "";
@@ -61,20 +74,23 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function sync(applyDefaults) {
         const familyId = optionValue(family);
-        filterSelect(subFamily, function (opt) {
-            return !familyId || opt.getAttribute("data-family") === familyId;
-        });
-        if (applyDefaults && !subFamily.value) {
-            const fallback = defaultOption(subFamily) || firstVisible(subFamily);
-            if (fallback) {
-                subFamily.value = fallback.value;
+        if (subFamily) {
+            filterSelect(subFamily, function (opt) {
+                return !familyId || opt.getAttribute("data-family") === familyId;
+            });
+            if (applyDefaults && !subFamily.value) {
+                const fallback = defaultOption(subFamily) || firstVisible(subFamily);
+                if (fallback) {
+                    subFamily.value = fallback.value;
+                }
             }
         }
         lockManufacturer();
         const subId = optionValue(subFamily);
         const brandId = optionValue(manufacturer);
         filterSelect(item, function (opt) {
-            const matchSub = !subId || opt.getAttribute("data-sub-family") === subId;
+            const matchSub =
+                !subFamily || !subId || opt.getAttribute("data-sub-family") === subId;
             const matchBrand = !brandId || opt.getAttribute("data-brand") === brandId;
             return matchSub && matchBrand;
         });
@@ -91,7 +107,7 @@ document.addEventListener("DOMContentLoaded", function () {
             sync(false);
             return;
         }
-        if (!family.value) {
+        if (family && !family.value) {
             const fam = defaultOption(family);
             if (fam) {
                 family.value = fam.value;
@@ -106,15 +122,21 @@ document.addEventListener("DOMContentLoaded", function () {
         sync(true);
     }
 
-    family.addEventListener("change", function () {
-        subFamily.value = "";
-        item.value = "";
-        sync(true);
-    });
-    subFamily.addEventListener("change", function () {
-        item.value = "";
-        sync(true);
-    });
+    if (family) {
+        family.addEventListener("change", function () {
+            if (subFamily) {
+                subFamily.value = "";
+            }
+            item.value = "";
+            sync(true);
+        });
+    }
+    if (subFamily) {
+        subFamily.addEventListener("change", function () {
+            item.value = "";
+            sync(true);
+        });
+    }
     manufacturer.addEventListener("change", function () {
         item.value = "";
         sync(true);

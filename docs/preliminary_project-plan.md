@@ -423,3 +423,28 @@ None.
 ### Open questions still open
 
 None.
+
+## Update 2026-09-07 — AC pairing (split vs multi)
+
+### What changed
+
+- **Keep one `items` table.** Indoor and outdoor stay peer SKUs (`kind`). Do not split into AC exterior / interior tables. Do not put `interior.exterior_id` on the catalog.
+- **Family** is product class. Seed **Air conditioners only**. Hide the family picker while only one live family exists. Underfloor / DHW are later families, not seeded now.
+- **Sub-family** is an **indoor design line** (Perfera, Sensira, Stylish, generic Split). Required on indoor items, **null on outdoor**. UI label: Design line. Not used for pairing.
+- **Outdoor identity:** manufacturer + power + `max_indoor_ports` (1 = split, 2+ = multi) + internal code.
+- **`item_matches`:** which indoors may attach to which outdoor (may cross design lines). Default match drives split auto-pick. This is the old deferred `model_default_matches`, built 1:N-capable.
+- **Quote systems:** `proforma_lines.parent_line` is the outdoor line. Split = 1 outdoor + 1 indoor (staff start from the indoor). Multi = 1 outdoor + 2+ indoors (staff start from the outdoor). Extra tubing stays on indoor runs.
+- **Seed (greenfield):** rewrite `seed_catalog` / `seed_demo`. Users, clients, sites unchanged. No outdoor rows under Perfera/Sensira. One Daikin 2-port multi outdoor. Cascais demo quote is that multi (Emura 12k + 9k, 8 m extra tubing). Other demo quotes are splits.
+
+### Apps added/removed
+
+None.
+
+### Decisions
+
+- Pairing is a relationship table plus grouped quote lines, not two product masters.
+- Heating later reuses the same pattern (family + matches), not extra item tables.
+
+### Open questions still open
+
+None.

@@ -43,22 +43,25 @@ def test_issue_freezes_extra_tubing_metres_after_catalog_change(
     tubing.save()
     issued.refresh_from_db()
     assert issued.extra_tubing_metres == Decimal("10.00")
-    assert issued.lines.first().tubing_length_value == Decimal("5.00")
+    indoor_line = issued.lines.filter(parent_line__isnull=False).first()
+    assert indoor_line.tubing_length_value == Decimal("5.00")
 
 
 def test_issue_freezes_line_price_after_catalog_change(issued, indoor):
-    frozen_price = issued.lines.first().unit_price
+    indoor_line = issued.lines.filter(item=indoor).get()
+    frozen_price = indoor_line.unit_price
     frozen_total = issued.grand_total
     indoor.list_price = Decimal("999.00")
     indoor.save()
     issued.refresh_from_db()
-    assert issued.lines.first().unit_price == frozen_price
+    indoor_line.refresh_from_db()
+    assert indoor_line.unit_price == frozen_price
     assert issued.grand_total == frozen_total
     assert frozen_price == Decimal("500.00")
 
 
 def test_issue_snapshots_catalog_names(issued, indoor):
-    line = issued.lines.first()
+    line = issued.lines.filter(item=indoor).get()
     assert line.family_name == "Air conditioners"
     assert line.sub_family_name == "Split"
     assert line.brand_name == "Mitsu"
@@ -68,7 +71,7 @@ def test_issue_snapshots_catalog_names(issued, indoor):
 
 
 def test_issue_snapshots_power_after_catalog_change(issued, indoor):
-    line = issued.lines.first()
+    line = issued.lines.filter(item=indoor).get()
     indoor.power.unit = "BTU-changed"
     indoor.power.save()
     issued.refresh_from_db()

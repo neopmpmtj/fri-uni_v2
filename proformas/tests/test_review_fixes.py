@@ -108,7 +108,7 @@ def test_issue_applies_unsaved_header(client, staff_user, site, indoor):
     assert proforma.upfront_discount_percent == Decimal("5.00")
     assert proforma.extra_labour == Decimal("20.00")
     assert proforma.observations == "locked in"
-    assert proforma.discount_amount == Decimal("25.00")
+    assert proforma.discount_amount == Decimal("52.50")
 
 
 @pytest.mark.integration

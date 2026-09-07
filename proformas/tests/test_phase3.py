@@ -236,7 +236,7 @@ def test_seed_catalog_twice_does_not_duplicate():
     daikin_sensira = Item.objects.filter(
         brand__name="Daikin", sub_family__name="Sensira"
     )
-    assert daikin_sensira.count() == 6
+    assert daikin_sensira.count() == 3
     indoor_9 = Item.objects.get(
         brand__name="Daikin",
         sub_family__name="Sensira",
@@ -247,6 +247,19 @@ def test_seed_catalog_twice_does_not_duplicate():
     assert indoor_9.internal_code == "DAI-SEN-I-9"
     assert indoor_9.max_volume_m3 == Decimal("20")
     assert indoor_9.vat_rate.code == "VAT23"
+    split_outdoor = Item.objects.get(internal_code="DAI-O1-9")
+    assert split_outdoor.kind == Item.Kind.OUTDOOR
+    assert split_outdoor.sub_family_id is None
+    assert split_outdoor.max_indoor_ports == 1
+    from proformas.models import ItemMatch
+
+    assert ItemMatch.objects.filter(
+        outdoor=split_outdoor, indoor=indoor_9, is_default=True
+    ).exists()
+    multi = Item.objects.get(internal_code="DAI-O2-18")
+    assert multi.max_indoor_ports == 2
+    assert Family.objects.filter(name=FAMILY_AC).count() == 1
+    assert Family.objects.count() == 1
     assert VatRate.objects.filter(is_default=True).count() == 1
     assert VatRate.objects.get(code="VAT23").rate == Decimal("0.2300")
     split = SubFamily.objects.get(name="Split", family=ac)
@@ -267,6 +280,7 @@ def test_sub_family_is_shared_across_brands():
     assert not Item.objects.filter(
         sub_family=split, brand__name="Daikin"
     ).exists()
+    assert not Item.objects.filter(sub_family=split, kind=Item.Kind.OUTDOOR).exists()
 
 
 @pytest.mark.integration
