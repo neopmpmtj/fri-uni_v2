@@ -6,7 +6,18 @@ from django.core.management import call_command
 from django.urls import reverse
 
 from accounts.models import User
-from proformas.models import Brand, ChangeLog, Family, Item, Power, SubFamily, VatRate
+from proformas.models import (
+    Brand,
+    ChangeLog,
+    Family,
+    Item,
+    ItemMatch,
+    Parameter,
+    Power,
+    SubFamily,
+    TubingLength,
+    VatRate,
+)
 from proformas.seed import FAMILY_AC
 from proformas.services import (
     normalize_internal_code,
@@ -24,6 +35,28 @@ def admin_user(db):
         password="pass12345",
         role=User.Role.ADMIN,
     )
+
+
+@pytest.mark.unit
+@pytest.mark.django_db
+def test_migrate_seeds_parameters_family_brands_and_tubing():
+    assert Parameter.objects.get(key="currency").value == "EUR"
+    assert Parameter.objects.get(key="default_upfront_discount_percent").value == "10"
+    assert Parameter.objects.get(key="tubing_length_unit").value == "m"
+    ac = Family.objects.get(name=FAMILY_AC)
+    assert ac.is_default
+    assert Family.objects.count() == 1
+    assert set(
+        Brand.objects.filter(
+            name__in=["Mitsubishi", "LG", "Nippon", "Daikin"]
+        ).values_list("name", flat=True)
+    ) == {"Mitsubishi", "LG", "Nippon", "Daikin"}
+    assert Item.objects.count() == 0
+    assert set(TubingLength.objects.values_list("length", "price")) == {
+        (Decimal("3.00"), Decimal("25.00")),
+        (Decimal("5.00"), Decimal("40.00")),
+        (Decimal("10.00"), Decimal("70.00")),
+    }
 
 
 @pytest.mark.unit
@@ -146,7 +179,7 @@ def test_edit_item_rejects_duplicate_identity(client, staff_user, indoor):
 @pytest.mark.django_db
 def test_same_sub_family_different_manufacturer_allowed(client, staff_user, indoor):
     client.force_login(staff_user)
-    lg = Brand.objects.create(name="LG")
+    lg, _ = Brand.objects.get_or_create(name="LG")
     response = client.post(
         reverse("item_list"),
         {
@@ -167,7 +200,7 @@ def test_same_sub_family_different_manufacturer_allowed(client, staff_user, indo
 @pytest.mark.django_db
 def test_item_list_sorts_by_manufacturer_desc(client, staff_user, indoor):
     client.force_login(staff_user)
-    lg = Brand.objects.create(name="LG")
+    lg, _ = Brand.objects.get_or_create(name="LG")
     Item.objects.create(
         sub_family=indoor.sub_family,
         brand=lg,
@@ -251,8 +284,6 @@ def test_seed_catalog_twice_does_not_duplicate():
     assert split_outdoor.kind == Item.Kind.OUTDOOR
     assert split_outdoor.sub_family_id is None
     assert split_outdoor.max_indoor_ports == 1
-    from proformas.models import ItemMatch
-
     assert ItemMatch.objects.filter(
         outdoor=split_outdoor, indoor=indoor_9, is_default=True
     ).exists()

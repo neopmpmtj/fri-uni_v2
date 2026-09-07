@@ -75,7 +75,7 @@ Same validation and snapshot rules as the web app. Intended for LLM agent invoca
 ### parameters
 
 - Purpose: settings editable without a deploy
-- Written by (apps): staff web app (setup page, not Django admin)
+- Written by (apps): migration seed; staff web app (setup page, not Django admin)
 - Fields (plus always-on):
   - `key` — text, required
   - `value` — text, required
@@ -87,7 +87,7 @@ Same validation and snapshot rules as the web app. Intended for LLM agent invoca
 - Reason-required: no
 - Extra history table: no
 - Extra activity table: no
-- Notes: staff may edit `value` on known keys only. No create or delete of parameter rows from the setup page.
+- Notes: staff may edit `value` on known keys only. No create or delete of parameter rows from the setup page. Initial rows: `currency=EUR`, `default_upfront_discount_percent=10`, `tubing_length_unit=m`.
 
 ### countries
 
@@ -165,7 +165,7 @@ Same validation and snapshot rules as the web app. Intended for LLM agent invoca
 ### brands
 
 - Purpose: manufacturer (start: Mitsubishi, LG, Nippon, Daikin). UI label: manufacturer.
-- Written by (apps): staff web app (setup page, not Django admin)
+- Written by (apps): migration seed; staff web app (setup page, not Django admin)
 - Fields (plus always-on):
   - `name` — text, required
   - `is_default` — boolean, required, default false
@@ -178,7 +178,7 @@ Same validation and snapshot rules as the web app. Intended for LLM agent invoca
 ### families
 
 - Purpose: product class (job type), not a manufacturer range or indoor design line. Seed: Air conditioners (default). Underfloor heating and DHW are later families, not seeded in this slice.
-- Written by (apps): staff web app (setup page)
+- Written by (apps): migration seed; staff web app (setup page)
 - Fields (plus always-on):
   - `name` — text, required
   - `is_default` — boolean, required, default false
@@ -274,7 +274,7 @@ Same validation and snapshot rules as the web app. Intended for LLM agent invoca
 ### tubing_lengths
 
 - Purpose: priced extra-tubing options when indoor and outdoor are far apart
-- Written by (apps): staff web app (setup page, not Django admin)
+- Written by (apps): migration seed; staff web app (setup page, not Django admin)
 - Fields (plus always-on):
   - `length` — number, required (metres; see `parameters.tubing_length_unit`)
   - `price` — money, required
@@ -283,7 +283,7 @@ Same validation and snapshot rules as the web app. Intended for LLM agent invoca
 - Reason-required fields: `price`
 - Extra history table: no
 - Extra activity table: no
-- Notes: catalog-wide list, not per item. Which lengths exist is operational data.
+- Notes: catalog-wide list, not per item. Initial rows: 3 m / 25, 5 m / 40, 10 m / 70. Staff may add more.
 
 ### proformas
 

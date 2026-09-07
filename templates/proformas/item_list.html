@@ -69,7 +69,7 @@
             {% for row in items %}
             <tr>
                 <td>{{ row.internal_code }}</td>
-                <td>{{ row.sub_family.family.name }}</td>
+                <td>{{ row.sub_family.family.name|default:"—" }}</td>
                 <td>{{ row.sub_family.name|default:"—" }}</td>
                 <td>{{ row.brand.name }}</td>
                 <td>{{ row.kind }}</td>

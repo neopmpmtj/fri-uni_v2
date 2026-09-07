@@ -482,7 +482,8 @@ table.grid th {
 }
 
 .drawer[hidden],
-.backdrop[hidden] {
+.backdrop[hidden],
+label[hidden] {
     display: none !important;
 }
 

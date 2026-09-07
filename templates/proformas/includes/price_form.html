@@ -3,7 +3,7 @@
     {% if editing %}<input type="hidden" name="id" value="{{ editing.pk }}">{% endif %}
     {{ form.non_field_errors }}
     {% if editing %}
-    <p class="muted">{{ editing.internal_code }} — {{ editing.sub_family.name }} {{ editing.kind }} {{ editing.power.power }} {{ editing.power.unit }}</p>
+    <p class="muted">{{ editing }}</p>
     {% endif %}
     <label>
         <span data-i18n="salesPrice">Sales price</span>

@@ -1,6 +1,6 @@
 # Session handoff
 
-> **Last updated:** 2026-09-07 15:57 WEST (Europe/Lisbon)  
+> **Last updated:** 2026-09-07 17:16 WEST (Europe/Lisbon)  
 > Replace with the current date and time whenever you edit this file.
 
 ## Project
@@ -17,7 +17,7 @@ Staff app is **`proformas`** (`accounts` is User/login only). Playbook: [`docs/p
 
 Catalog: **family → indoor design line (`sub_families`) → indoor item**; outdoor items have **no** design line (brand + power + `max_indoor_ports` + code). Pairing is **`item_matches`**. Quote lines group under the outdoor (`parent_line`). Sales price is edited only on the manufacturer pricelist (reason required). Django admin is users and audit only.
 
-Do not run `seed_demo` in production. Fresh local DB: `rm -f db.sqlite3`, then `migrate` and `seed_demo`. Restart `runserver` after schema changes. After pulling this tree, run **`migrate`** (migration `0018`).
+Do not run `seed_demo` in production. Fresh local DB: `rm -f db.sqlite3`, then `migrate` and `seed_demo`. Restart `runserver` after schema changes. After pulling this tree, run **`migrate`** (migration `0019`).
 
 **Proforma document life:** `draft` | `issued` only. **Accepted** and **rejected** are overlays (`accepted_at` / `rejected_at`), mutually exclusive (clear one before marking the other). **Change** is blocked when accepted or rejected (or already superseded). There is no `cancelled` status (legacy rows mapped to `issued` in `0016`).
 
@@ -25,16 +25,13 @@ Do not run `seed_demo` in production. Fresh local DB: `rm -f db.sqlite3`, then `
 
 ## Done (this session)
 
-- **AC pairing model:** one `items` table; indoor design line only; outdoor `max_indoor_ports`; `item_matches`; `proforma_lines.parent_line`
-- Docs: [`data-points.md`](data-points.md), [`preliminary_project-plan.md`](preliminary_project-plan.md) update 2026-09-07, front-end line/item drawers
-- Staff UI: Add split / Add multi / Add indoor; hide family picker when only one family; item form ports vs design line
-- Greenfield **seed rewrite:** AC family only; no outdoor rows under Perfera/Sensira; Daikin `DAI-O2-18` multi; Cascais is that multi (Emura 12k + 9k, 8 m tubing)
-- Migration `0018_ac_pairing`
-- **Tests:** **146 passing** (`pytest`); pairing tests in `test_pairing.py`
+- **Migration-seeded lookups** (`0019_seed_reference_lookups`): parameters (`currency=EUR`, discount 10%, tubing unit `m`), family Air conditioners (default), brands Mitsubishi / LG / Nippon / Daikin, tubing 3/5/10 m. Present after `migrate` without `seed_demo`.
+- `seed_catalog` still fills design lines, items, and matches (idempotent over the new rows).
+- **Tests:** **147 passing** (`pytest`)
 
 ## Done (earlier)
 
-- Crash/freeze audit + remediations; rejected overlay; new-draft form + list sort; Phases 1–8; catalog slice; VAT; client/site identity; Change/supersede (see prior handoff / git history)
+- AC pairing model; seed rewrite; migration `0018`; crash/freeze audit; rejected overlay; Phases 1–8; catalog slice; VAT; client/site identity; Change/supersede
 
 ## Not done
 
@@ -50,8 +47,8 @@ Do not run `seed_demo` in production. Fresh local DB: `rm -f db.sqlite3`, then `
 
 ## Next
 
-1. Fresh local DB: `rm -f db.sqlite3 && migrate && seed_demo`; click Add split / Add multi / Cascais multi quote
-2. Commit when ready (pairing + seed rewrite)
+1. Existing local DB: `migrate` (applies `0019`). Fresh wipe still `rm -f db.sqlite3 && migrate && seed_demo`
+2. Commit when ready (pairing + lookup seeds)
 3. VAT on quote math / PDF — unchanged product backlog
 
 ## Commands

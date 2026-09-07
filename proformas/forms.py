@@ -275,9 +275,6 @@ class DataDefaultSelect(forms.Select):
                 str(instance.sub_family_id) if instance.sub_family_id else ""
             )
             option["attrs"]["data-brand"] = str(instance.brand_id)
-            option["attrs"]["data-kind"] = instance.kind
-            if instance.max_indoor_ports:
-                option["attrs"]["data-ports"] = str(instance.max_indoor_ports)
         return option
 
 
@@ -306,13 +303,11 @@ class ProformaLineForm(forms.ModelForm):
         *args,
         parent_line=None,
         outdoor_only=False,
-        hide_family=False,
         **kwargs,
     ):
         super().__init__(*args, **kwargs)
         self.parent_line_obj = parent_line
         self.outdoor_only = outdoor_only
-        self.hide_family = hide_family
         items = Item.objects.select_related(
             "sub_family__family", "brand", "power"
         ).order_by("internal_code")

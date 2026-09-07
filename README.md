@@ -2,7 +2,7 @@
 
 Internal HVAC back office for creating **proforma invoices** — client quotes for equipment installation and cost, including an upfront-payment discount. Not an official finance document.
 
-> **Last updated:** 2026-09-07 15:57 WEST
+> **Last updated:** 2026-09-07 17:16 WEST
 
 ## What it does
 
@@ -26,7 +26,7 @@ Demo logins (password `fribila-demo`):
 - `proforma-admin@fribila.dev` — Django admin, can delete clients/sites
 - `proforma-manager@fribila.dev` — quoting UI, cannot delete
 
-`seed_catalog` is catalog-only. Do not run `seed_demo` in production.
+`migrate` already seeds VAT, powers, countries, contact positions, parameters, the Air conditioners family, brands, and tubing lengths. `seed_catalog` adds design lines, items, and matches. Do not run `seed_demo` in production.
 
 ## Documentation
 

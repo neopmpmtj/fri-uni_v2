@@ -65,9 +65,13 @@ def indoor(db):
     Parameter.objects.get_or_create(
         key="default_upfront_discount_percent", defaults={"value": "10"}
     )
-    family = Family.objects.create(name="Air conditioners", is_default=True)
-    sub = SubFamily.objects.create(family=family, name="Split", is_default=True)
-    brand = Brand.objects.create(name="Mitsu")
+    family, _ = Family.objects.get_or_create(
+        name="Air conditioners", defaults={"is_default": True}
+    )
+    sub, _ = SubFamily.objects.get_or_create(
+        family=family, name="Split", defaults={"is_default": True}
+    )
+    brand, _ = Brand.objects.get_or_create(name="Mitsu")
     vat, _ = VatRate.objects.get_or_create(
         code="VAT23",
         defaults={
@@ -105,4 +109,7 @@ def indoor(db):
 
 @pytest.fixture
 def tubing(db):
-    return TubingLength.objects.create(length=Decimal("5.00"), price=Decimal("40.00"))
+    tubing, _ = TubingLength.objects.get_or_create(
+        length=Decimal("5.00"), defaults={"price": Decimal("40.00")}
+    )
+    return tubing

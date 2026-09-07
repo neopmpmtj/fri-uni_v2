@@ -382,7 +382,6 @@ def proforma_detail(request, pk):
                     instance=instance,
                     parent_line=parent_line,
                     outdoor_only=outdoor_only,
-                    hide_family=hide_family,
                 )
                 if line_form.is_valid():
                     data = line_form.cleaned_data
@@ -453,22 +452,17 @@ def proforma_detail(request, pk):
             instance=editing_line,
             parent_line=parent_line,
             outdoor_only=outdoor_only,
-            hide_family=hide_family,
         )
     elif request.GET.get("parent"):
         parent_line = get_object_or_404(
             ProformaLine, pk=request.GET["parent"], proforma=proforma
         )
-        line_form = ProformaLineForm(
-            parent_line=parent_line, hide_family=hide_family
-        )
+        line_form = ProformaLineForm(parent_line=parent_line)
     elif request.GET.get("new_line") == "multi":
         outdoor_only = True
-        line_form = ProformaLineForm(
-            outdoor_only=True, hide_family=hide_family
-        )
+        line_form = ProformaLineForm(outdoor_only=True)
     elif request.GET.get("new_line"):
-        line_form = ProformaLineForm(hide_family=hide_family)
+        line_form = ProformaLineForm()
 
     lines = services.grouped_proforma_lines(proforma)
     drawer_open = bool(

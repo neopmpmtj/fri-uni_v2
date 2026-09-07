@@ -195,8 +195,12 @@ def test_update_draft_rejects_negative_labour(staff_user, site):
 def test_new_line_drawer_defaults_shortest_tubing_length(
     client, staff_user, site, indoor, tubing
 ):
-    short = TubingLength.objects.create(length=Decimal("3.00"), price=Decimal("25.00"))
-    TubingLength.objects.create(length=Decimal("10.00"), price=Decimal("70.00"))
+    short, _ = TubingLength.objects.get_or_create(
+        length=Decimal("3.00"), defaults={"price": Decimal("25.00")}
+    )
+    TubingLength.objects.get_or_create(
+        length=Decimal("10.00"), defaults={"price": Decimal("70.00")}
+    )
     proforma = create_draft(site, staff_user)
     client.force_login(staff_user)
     response = client.get(

@@ -448,3 +448,28 @@ None.
 ### Open questions still open
 
 None.
+
+## Update 2026-09-07 — Migration-seeded lookups
+
+### What changed
+
+After `migrate` (without `seed_catalog` / `seed_demo`), these rows exist:
+
+- **Parameters:** `currency=EUR`, `default_upfront_discount_percent=10`, `tubing_length_unit=m`
+- **Family:** Air conditioners (default)
+- **Brands:** Mitsubishi, LG, Nippon, Daikin
+- **Tubing lengths:** 3 m / 25, 5 m / 40, 10 m / 70
+
+Design lines, items, item matches, users, clients, and quotes still come from `seed_catalog` / `seed_demo` only.
+
+### Apps added/removed
+
+None.
+
+### Decisions
+
+Same pattern as VAT rates, powers, countries, and contact positions: lookup rows in a data migration so a production `migrate` is usable without running demo seed.
+
+### Open questions still open
+
+None.

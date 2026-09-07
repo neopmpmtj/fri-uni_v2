@@ -52,7 +52,9 @@ def test_discount_ignores_tubing_and_labour(staff_user, site, indoor, tubing):
 
 
 def test_extra_tubing_metres_sums_quantity_times_length(staff_user, site, indoor, tubing):
-    short = TubingLength.objects.create(length=Decimal("3.00"), price=Decimal("25.00"))
+    short, _ = TubingLength.objects.get_or_create(
+        length=Decimal("3.00"), defaults={"price": Decimal("25.00")}
+    )
     proforma = create_draft(site, staff_user, discount_percent=0)
     add_line(
         proforma,
