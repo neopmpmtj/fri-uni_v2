@@ -1,0 +1,45 @@
+{% extends "work_base.html" %}
+{% load static %}
+
+{% block extra_head %}
+<script src="{% static 'js/drawer.js' %}?v=1" defer></script>
+{% endblock %}
+
+{% block heading %}<span data-i18n="manufacturers">Manufacturers</span>{% endblock %}
+
+{% block actions %}
+<a class="btn primary" href="{% url 'manufacturer_list' %}?new=1" data-i18n="newManufacturer">New manufacturer</a>
+{% endblock %}
+
+{% block content %}
+<div class="toolbar">
+    <form method="get" class="grow">
+        <input type="search" name="q" value="{{ q }}" data-i18n-placeholder="search" placeholder="Search">
+    </form>
+</div>
+<div class="table-wrap">
+    <table class="grid">
+        <thead>
+            <tr>
+                <th data-i18n="name">Name</th>
+                <th data-i18n="default">Default</th>
+                <th data-i18n="pricelist">Pricelist</th>
+                <th data-i18n="actions">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for brand in manufacturers %}
+            <tr>
+                <td>{{ brand.name }}</td>
+                <td>{% if brand.is_default %}yes{% else %}—{% endif %}</td>
+                <td><a href="{% url 'manufacturer_pricelist' brand.pk %}" data-i18n="pricelist">Pricelist</a></td>
+                <td><a href="{% url 'manufacturer_list' %}?id={{ brand.pk }}" data-i18n="edit">Edit</a></td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4" data-i18n="empty">No rows yet.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% include "includes/drawer.html" with drawer_title=editing.name|default:"New manufacturer" drawer_form_template="proformas/includes/manufacturer_form.html" %}
+{% endblock %}

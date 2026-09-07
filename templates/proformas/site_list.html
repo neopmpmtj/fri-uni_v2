@@ -1,0 +1,51 @@
+{% extends "work_base.html" %}
+{% load static %}
+
+{% block extra_head %}
+<script src="{% static 'js/drawer.js' %}?v=1" defer></script>
+{% endblock %}
+
+{% block heading %}<span data-i18n="sites">Sites</span>{% endblock %}
+
+{% block actions %}
+<a class="btn primary" href="{% url 'site_list' %}?new=1" data-i18n="newSite">New site</a>
+{% endblock %}
+
+{% block content %}
+<div class="toolbar">
+    <form method="get" class="grow" style="display:flex;gap:0.75rem;align-items:center;">
+        <input type="search" name="q" value="{{ q }}" data-i18n-placeholder="search" placeholder="Search">
+        <select name="client" onchange="this.form.submit()">
+            <option value="" data-i18n="allClients">All clients</option>
+            {% for c in clients %}
+            <option value="{{ c.pk }}" {% if client_id == c.pk|stringformat:"s" %}selected{% endif %}>{{ c.name }}</option>
+            {% endfor %}
+        </select>
+    </form>
+</div>
+<div class="table-wrap">
+    <table class="grid">
+        <thead>
+            <tr>
+                <th data-i18n="client">Client</th>
+                <th data-i18n="alias1">Alias 1</th>
+                <th data-i18n="city">City</th>
+                <th data-i18n="actions">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for site in sites %}
+            <tr>
+                <td>{{ site.client.name }}</td>
+                <td>{{ site.alias_1 }}</td>
+                <td>{{ site.city }}</td>
+                <td><a href="{% url 'site_list' %}?id={{ site.pk }}" data-i18n="edit">Edit</a></td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4" data-i18n="empty">No rows yet.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% include "includes/drawer.html" with drawer_title=editing.alias_1|default:"New site" drawer_form_template="proformas/includes/site_form.html" %}
+{% endblock %}

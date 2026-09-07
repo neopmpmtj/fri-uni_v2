@@ -1,0 +1,83 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title data-i18n="dashboardTitle">Proformas</title>
+    {% include "includes/head.html" %}
+</head>
+<body>
+    <div class="page-account-bar">
+        <label class="lang-label">
+            <span class="visually-hidden" data-i18n="language">Language</span>
+            <select id="pref-language" aria-label="Language">
+                <option value="en">English</option>
+                <option value="pt">Português</option>
+            </select>
+        </label>
+        <div class="account-bar-right">
+            {% include "includes/account_settings.html" %}
+        </div>
+    </div>
+    <main class="dash-main">
+        <h1 data-i18n="dashboardTitle">Proformas</h1>
+        <p class="muted" data-i18n="dashboardLead">Choose a workspace.</p>
+        <h2 class="dash-section" data-i18n="daily">Daily</h2>
+        <div class="card-grid">
+            <a class="dash-card" href="{% url 'client_list' %}">
+                <h2 data-i18n="clients">Clients</h2>
+                <p data-i18n="clientsDesc">Customer organisations.</p>
+            </a>
+            <a class="dash-card" href="{% url 'site_list' %}">
+                <h2 data-i18n="sites">Sites</h2>
+                <p data-i18n="sitesDesc">Work locations.</p>
+            </a>
+            <a class="dash-card" href="{% url 'proforma_list' %}">
+                <h2 data-i18n="proformas">Proformas</h2>
+                <p data-i18n="proformasDesc">Draft, issue, and download quotes.</p>
+            </a>
+            <a class="dash-card" href="{% url 'item_list' %}">
+                <h2 data-i18n="items">Items</h2>
+                <p data-i18n="itemsDesc">Catalog machines for quoting.</p>
+            </a>
+        </div>
+        <h2 class="dash-section" data-i18n="setup">Setup</h2>
+        <div class="card-grid">
+            <a class="dash-card" href="{% url 'family_list' %}">
+                <h2 data-i18n="families">Families</h2>
+                <p data-i18n="familiesDesc">Product categories such as AC.</p>
+            </a>
+            <a class="dash-card" href="{% url 'sub_family_list' %}">
+                <h2 data-i18n="subFamilies">Sub-families</h2>
+                <p data-i18n="subFamiliesDesc">Named ranges under a family.</p>
+            </a>
+            <a class="dash-card" href="{% url 'manufacturer_list' %}">
+                <h2 data-i18n="manufacturers">Manufacturers</h2>
+                <p data-i18n="manufacturersDesc">Brands and sales pricelists.</p>
+            </a>
+            <a class="dash-card" href="{% url 'vat_rate_list' %}">
+                <h2 data-i18n="vatRates">VAT rates</h2>
+                <p data-i18n="vatRatesDesc">IVA rates for catalog items.</p>
+            </a>
+            <a class="dash-card" href="{% url 'power_list' %}">
+                <h2 data-i18n="powers">Powers</h2>
+                <p data-i18n="powersDesc">Standard power ratings for catalog items.</p>
+            </a>
+            <a class="dash-card" href="{% url 'parameter_list' %}">
+                <h2 data-i18n="parameters">Parameters</h2>
+                <p data-i18n="parametersDesc">Currency, default discount, tubing unit.</p>
+            </a>
+            <a class="dash-card" href="{% url 'tubing_length_list' %}">
+                <h2 data-i18n="tubingLengths">Tubing lengths</h2>
+                <p data-i18n="tubingLengthsDesc">Priced extra-tubing options.</p>
+            </a>
+            <a class="dash-card" href="{% url 'contact_position_list' %}">
+                <h2 data-i18n="contactPositions">Positions</h2>
+                <p data-i18n="contactPositionsDesc">Contact roles for clients and sites.</p>
+            </a>
+        </div>
+    </main>
+    <script src="{% static 'js/dashboard.js' %}?v=1" defer></script>
+</body>
+</html>

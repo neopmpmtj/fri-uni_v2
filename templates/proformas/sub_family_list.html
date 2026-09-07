@@ -1,0 +1,53 @@
+{% extends "work_base.html" %}
+{% load static %}
+
+{% block extra_head %}
+<script src="{% static 'js/drawer.js' %}?v=1" defer></script>
+{% endblock %}
+
+{% block heading %}<span data-i18n="subFamilies">Sub-families</span>{% endblock %}
+
+{% block actions %}
+<a class="btn primary" href="{% url 'sub_family_list' %}?new=1" data-i18n="newSubFamily">New sub-family</a>
+{% endblock %}
+
+{% block content %}
+<div class="toolbar">
+    <form method="get" class="grow" style="display:flex;gap:0.75rem;align-items:center;">
+        <input type="search" name="q" value="{{ q }}" data-i18n-placeholder="search" placeholder="Search">
+        <select name="family" onchange="this.form.submit()">
+            <option value="" data-i18n="allFamilies">All families</option>
+            {% for f in families %}
+            <option value="{{ f.pk }}" {% if family_id == f.pk|stringformat:"s" %}selected{% endif %}>{{ f.name }}</option>
+            {% endfor %}
+        </select>
+    </form>
+</div>
+<div class="table-wrap">
+    <table class="grid">
+        <thead>
+            <tr>
+                <th data-i18n="family">Family</th>
+                <th data-i18n="name">Name</th>
+                <th data-i18n="manufacturer">Manufacturer</th>
+                <th data-i18n="default">Default</th>
+                <th data-i18n="actions">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in sub_families %}
+            <tr>
+                <td>{{ row.family.name }}</td>
+                <td>{{ row.name }}</td>
+                <td>{% if row.brand %}{{ row.brand.name }}{% else %}—{% endif %}</td>
+                <td>{% if row.is_default %}yes{% else %}—{% endif %}</td>
+                <td><a href="{% url 'sub_family_list' %}?id={{ row.pk }}" data-i18n="edit">Edit</a></td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5" data-i18n="empty">No rows yet.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% include "includes/drawer.html" with drawer_title=editing.name|default:"New sub-family" drawer_form_template="proformas/includes/sub_family_form.html" %}
+{% endblock %}

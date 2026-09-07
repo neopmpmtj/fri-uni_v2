@@ -1,0 +1,61 @@
+<article class="quote-doc">
+    <header>
+        <p class="eyebrow">{{ company_name }}</p>
+        <h1>{{ labels.title }} {{ proforma.number }}</h1>
+    </header>
+    <section>
+        <h2>{{ labels.client }}</h2>
+        <p>{{ proforma.client_name }}</p>
+        {% if proforma.client_tax_number %}<p>{{ labels.taxNumber }}: {{ proforma.client_tax_number }}</p>{% endif %}
+        {% if proforma.client_street %}<p>{{ proforma.client_street }}</p>{% endif %}
+        {% if proforma.client_postal_code or proforma.client_city %}<p>{{ proforma.client_postal_code }} {{ proforma.client_city }}</p>{% endif %}
+        {% if proforma.client_phone %}<p>{{ labels.phone }}: {{ proforma.client_phone }}</p>{% endif %}
+        {% if proforma.client_email %}<p>{{ labels.email }}: {{ proforma.client_email }}</p>{% endif %}
+    </section>
+    <section>
+        <h2>{{ labels.site }}</h2>
+        <p>{{ proforma.site_alias_1 }}{% if proforma.site_alias_2 %}, {{ proforma.site_alias_2 }}{% endif %}{% if proforma.site_alias_3 %}, {{ proforma.site_alias_3 }}{% endif %}{% if proforma.site_alias_4 %}, {{ proforma.site_alias_4 }}{% endif %}</p>
+        {% if proforma.site_street %}<p>{{ proforma.site_street }}</p>{% endif %}
+        <p>{{ proforma.site_postal_code }} {{ proforma.site_city }}</p>
+        {% if proforma.site_notes %}<p>{{ proforma.site_notes }}</p>{% endif %}
+    </section>
+    <table class="grid">
+        <thead>
+            <tr>
+                <th>{{ labels.equipment }}</th>
+                <th>{{ labels.qty }}</th>
+                <th>{{ labels.unit }}</th>
+                <th>{{ labels.tubing }}</th>
+                <th>{{ labels.lineTotal }}</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for line in lines %}
+            <tr>
+                <td>{{ line.brand_name }} {{ line.family_name }} {{ line.sub_family_name }} {% if line.kind == "indoor" %}{{ labels.kindIndoor }}{% elif line.kind == "outdoor" %}{{ labels.kindOutdoor }}{% else %}{{ line.kind }}{% endif %} {{ line.power_value }} {{ line.power_unit }}</td>
+                <td>{{ line.quantity }}</td>
+                <td>{{ line.unit_price }}</td>
+                <td>{% if line.extra_tubing %}{{ line.tubing_length_value }} m{% else %}—{% endif %}</td>
+                <td>{{ line.line_total }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <h2>{{ labels.totals }}</h2>
+    <dl class="totals">
+        <div><dt>{{ labels.equipmentSubtotal }}</dt><dd>{{ proforma.equipment_subtotal }}</dd></div>
+        <div><dt>{{ labels.tubingTotal }}</dt><dd>{{ proforma.tubing_total }}</dd></div>
+        {% if proforma.extra_tubing_metres %}
+        <div><dt>{{ labels.extraTubingMetres }}</dt><dd>{{ proforma.extra_tubing_metres }} m</dd></div>
+        {% endif %}
+        <div><dt>{{ labels.discount }}</dt><dd>{{ proforma.discount_amount }}</dd></div>
+        <div><dt>{{ labels.extraLabour }}</dt><dd>{{ proforma.extra_labour }}</dd></div>
+        <div><dt>{{ labels.grandTotal }}</dt><dd>{{ proforma.grand_total }}</dd></div>
+    </dl>
+    {% if proforma.observations %}
+    <section>
+        <h2>{{ labels.observations }}</h2>
+        <p>{{ proforma.observations }}</p>
+    </section>
+    {% endif %}
+</article>

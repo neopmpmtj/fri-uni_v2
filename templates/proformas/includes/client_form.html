@@ -1,0 +1,69 @@
+<form method="post" action="{% url 'client_list' %}">
+    {% csrf_token %}
+    {% if editing %}<input type="hidden" name="id" value="{{ editing.pk }}">{% endif %}
+    {{ form.non_field_errors }}
+    <label>
+        <span data-i18n="kind">Kind</span>
+        {{ form.kind }}
+        {{ form.kind.errors }}
+    </label>
+    <label>
+        <span data-i18n="name">Name</span>
+        {{ form.name }}
+        {{ form.name.errors }}
+    </label>
+    <label>
+        <span data-i18n="taxNumber">NIF</span>
+        {{ form.tax_number }}
+        {{ form.tax_number.errors }}
+    </label>
+    <label>
+        <span data-i18n="street">Street</span>
+        {{ form.street }}
+        {{ form.street.errors }}
+    </label>
+    <label>
+        <span data-i18n="postalCode">Postal code</span>
+        {{ form.postal_code }}
+        {{ form.postal_code.errors }}
+    </label>
+    <label>
+        <span data-i18n="city">City</span>
+        {{ form.city }}
+        {{ form.city.errors }}
+    </label>
+    <label>
+        <span data-i18n="country">Country</span>
+        {{ form.country_code }}
+        {{ form.country_code.errors }}
+    </label>
+    <label>
+        <span data-i18n="phone">Phone</span>
+        <div class="phone-input">
+            <span class="phone-prefix">+351</span>
+            {{ form.phone }}
+        </div>
+        {{ form.phone.errors }}
+    </label>
+    <label>
+        <span data-i18n="email">Email</span>
+        {{ form.email }}
+        {{ form.email.errors }}
+    </label>
+    <label>
+        <span data-i18n="contactName">Contact person</span>
+        {{ form.contact_name }}
+        {{ form.contact_name.errors }}
+    </label>
+    <label>
+        <span data-i18n="contactPosition">Position</span>
+        {{ form.contact_position }}
+        {{ form.contact_position.errors }}
+    </label>
+    <div class="drawer-actions">
+        {% if editing and user.can_delete %}
+        <button type="submit" name="action" value="delete" class="btn danger" data-i18n="delete">Delete</button>
+        {% endif %}
+        <button type="submit" name="action" value="save" class="btn primary" data-i18n="save">Save</button>
+    </div>
+</form>

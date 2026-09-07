@@ -1,0 +1,43 @@
+{% extends "work_base.html" %}
+{% load static %}
+
+{% block extra_head %}
+<script src="{% static 'js/drawer.js' %}?v=1" defer></script>
+{% endblock %}
+
+{% block heading %}<span data-i18n="powers">Powers</span>{% endblock %}
+
+{% block actions %}
+<a class="btn primary" href="{% url 'power_list' %}?new=1" data-i18n="newPower">New power</a>
+{% endblock %}
+
+{% block content %}
+<div class="toolbar">
+    <form method="get" class="grow">
+        <input type="search" name="q" value="{{ q }}" data-i18n-placeholder="search" placeholder="Search">
+    </form>
+</div>
+<div class="table-wrap">
+    <table class="grid">
+        <thead>
+            <tr>
+                <th data-i18n="power">Power</th>
+                <th data-i18n="unit">Unit</th>
+                <th data-i18n="actions">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in powers %}
+            <tr>
+                <td>{{ row.power }}</td>
+                <td>{{ row.unit }}</td>
+                <td><a href="{% url 'power_list' %}?id={{ row.pk }}" data-i18n="edit">Edit</a></td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="3" data-i18n="empty">No rows yet.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% include "includes/drawer.html" with drawer_title=editing|default:"New power" drawer_form_template="proformas/includes/power_form.html" %}
+{% endblock %}

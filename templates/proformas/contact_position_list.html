@@ -1,0 +1,41 @@
+{% extends "work_base.html" %}
+{% load static %}
+
+{% block extra_head %}
+<script src="{% static 'js/drawer.js' %}?v=1" defer></script>
+{% endblock %}
+
+{% block heading %}<span data-i18n="contactPositions">Positions</span>{% endblock %}
+
+{% block actions %}
+<a class="btn primary" href="{% url 'contact_position_list' %}?new=1" data-i18n="newContactPosition">New position</a>
+{% endblock %}
+
+{% block content %}
+<div class="toolbar">
+    <form method="get" class="grow">
+        <input type="search" name="q" value="{{ q }}" data-i18n-placeholder="search" placeholder="Search">
+    </form>
+</div>
+<div class="table-wrap">
+    <table class="grid">
+        <thead>
+            <tr>
+                <th data-i18n="name">Name</th>
+                <th data-i18n="actions">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in contact_positions %}
+            <tr>
+                <td>{{ row.name }}</td>
+                <td><a href="{% url 'contact_position_list' %}?id={{ row.pk }}" data-i18n="edit">Edit</a></td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="2" data-i18n="empty">No rows yet.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% include "includes/drawer.html" with drawer_title=editing.name|default:"New position" drawer_form_template="proformas/includes/contact_position_form.html" %}
+{% endblock %}

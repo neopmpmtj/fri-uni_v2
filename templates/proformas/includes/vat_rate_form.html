@@ -1,0 +1,29 @@
+<form method="post" action="{% url 'vat_rate_list' %}">
+    {% csrf_token %}
+    {% if editing %}<input type="hidden" name="id" value="{{ editing.pk }}">{% endif %}
+    {{ form.non_field_errors }}
+    <label>
+        <span data-i18n="vatCode">Code</span>
+        {{ form.code }}
+        {{ form.code.errors }}
+    </label>
+    <label>
+        <span data-i18n="vatLabel">Label</span>
+        {{ form.label }}
+        {{ form.label.errors }}
+    </label>
+    <label>
+        <span data-i18n="vatPercent">Percent</span>
+        {{ form.percent }}
+        {{ form.percent.errors }}
+    </label>
+    <label>
+        <span>{{ form.is_default }} <span data-i18n="default">Default</span></span>
+    </label>
+    <div class="drawer-actions">
+        {% if editing and user.can_delete %}
+        <button type="submit" name="action" value="delete" class="btn danger" data-i18n="delete">Delete</button>
+        {% endif %}
+        <button type="submit" name="action" value="save" class="btn primary" data-i18n="save">Save</button>
+    </div>
+</form>

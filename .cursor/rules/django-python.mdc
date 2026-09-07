@@ -1,0 +1,28 @@
+---
+description: Django and Python conventions
+globs: **/*.py
+alwaysApply: false
+---
+
+# Django / Python
+
+## Layering
+
+```text
+views / management commands  →  services.py  →  models.py
+```
+
+- Put reusable business logic in `services.py`, not duplicated in views or CLI
+- Project package: `conf/` with split settings under `conf/settings/`
+
+## Habits
+
+- Migrations: one logical change per migration
+- Use `.venv/bin/python` for `manage.py` and tests (or activate the venv first)
+- Tests only when requested or they cover meaningful behaviour
+
+## Imports
+
+- Cross-app: absolute from app package (`from myapp.models import Thing`)
+- Same app: absolute or single-dot relative (`from .models import Thing`)
+- Never use multi-level relative imports across apps (`from ..otherapp import ...`)

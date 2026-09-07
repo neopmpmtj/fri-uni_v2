@@ -1,0 +1,17 @@
+<form method="post" action="{% url 'proforma_list' %}" id="new-draft-form">
+    {% csrf_token %}
+    {{ draft_form.non_field_errors }}
+    <label>
+        <span data-i18n="client">Client</span>
+        {{ draft_form.client }}
+        {{ draft_form.client.errors }}
+    </label>
+    <label>
+        <span data-i18n="site">Site</span>
+        {{ draft_form.site }}
+        {{ draft_form.site.errors }}
+    </label>
+    <div class="drawer-actions">
+        <button type="submit" name="action" value="create" class="btn primary" data-i18n="save">Save</button>
+    </div>
+</form>

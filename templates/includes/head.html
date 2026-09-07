@@ -1,0 +1,17 @@
+{% load static %}
+<script>
+(function () {
+    var lang = "en";
+    try {
+        lang = localStorage.getItem("fu-lang") || "en";
+    } catch (e) { /* blocked storage */ }
+    if (String(lang).toLowerCase().indexOf("pt") === 0) {
+        lang = "pt-PT";
+    } else {
+        lang = "en";
+    }
+    document.documentElement.setAttribute("lang", lang);
+})();
+</script>
+<link rel="stylesheet" href="{% static 'css/app.css' %}?v=7">
+<script src="{% static 'js/i18n.js' %}?v=4" defer></script>

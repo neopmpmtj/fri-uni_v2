@@ -1,0 +1,16 @@
+<form method="post" action="{% url 'parameter_list' %}">
+    {% csrf_token %}
+    {% if editing %}<input type="hidden" name="id" value="{{ editing.pk }}">{% endif %}
+    {{ form.non_field_errors }}
+    {% if editing %}
+    <p class="muted">{{ editing.key }}</p>
+    {% endif %}
+    <label>
+        <span data-i18n="value">Value</span>
+        {{ form.value }}
+        {{ form.value.errors }}
+    </label>
+    <div class="drawer-actions">
+        <button type="submit" name="action" value="save" class="btn primary" data-i18n="save">Save</button>
+    </div>
+</form>

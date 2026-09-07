@@ -1,0 +1,40 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}{{ page_title|default:"Work" }}{% endblock %}</title>
+    {% include "includes/head.html" %}
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <header class="topbar">
+        <div class="topbar-title">
+            <p class="eyebrow" data-i18n="appName">Proformas</p>
+            <h1>{% block heading %}{{ page_title|default:"Work" }}{% endblock %}</h1>
+        </div>
+        <nav class="topbar-nav" aria-label="Main">
+            <a href="{% url 'dashboard' %}" data-i18n="home">Home</a>
+            <a href="{% url 'client_list' %}" class="{% if nav_active == 'clients' %}is-active{% endif %}" data-i18n="clients">Clients</a>
+            <a href="{% url 'site_list' %}" class="{% if nav_active == 'sites' %}is-active{% endif %}" data-i18n="sites">Sites</a>
+            <a href="{% url 'proforma_list' %}" class="{% if nav_active == 'proformas' %}is-active{% endif %}" data-i18n="proformas">Proformas</a>
+            <a href="{% url 'item_list' %}" class="{% if nav_active == 'items' %}is-active{% endif %}" data-i18n="items">Items</a>
+        </nav>
+        <div class="topbar-actions">
+            {% block actions %}{% endblock %}
+            {% include "includes/account_settings.html" %}
+        </div>
+    </header>
+    <main class="page">
+        {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+            <li class="form-error">{{ message }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>

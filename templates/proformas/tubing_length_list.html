@@ -1,0 +1,43 @@
+{% extends "work_base.html" %}
+{% load static %}
+
+{% block extra_head %}
+<script src="{% static 'js/drawer.js' %}?v=1" defer></script>
+{% endblock %}
+
+{% block heading %}<span data-i18n="tubingLengths">Tubing lengths</span>{% endblock %}
+
+{% block actions %}
+<a class="btn primary" href="{% url 'tubing_length_list' %}?new=1" data-i18n="newTubingLength">New tubing length</a>
+{% endblock %}
+
+{% block content %}
+<div class="toolbar">
+    <form method="get" class="grow">
+        <input type="search" name="q" value="{{ q }}" data-i18n-placeholder="search" placeholder="Search">
+    </form>
+</div>
+<div class="table-wrap">
+    <table class="grid">
+        <thead>
+            <tr>
+                <th data-i18n="tubingLength">Length</th>
+                <th data-i18n="salesPrice">Price</th>
+                <th data-i18n="actions">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in tubing_lengths %}
+            <tr>
+                <td>{{ row.length }}</td>
+                <td>{{ row.price }}</td>
+                <td><a href="{% url 'tubing_length_list' %}?id={{ row.pk }}" data-i18n="edit">Edit</a></td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="3" data-i18n="empty">No rows yet.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% include "includes/drawer.html" with drawer_title=editing.length|default:"New tubing length" drawer_form_template="proformas/includes/tubing_form.html" %}
+{% endblock %}

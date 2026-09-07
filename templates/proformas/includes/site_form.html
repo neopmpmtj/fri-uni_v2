@@ -1,0 +1,75 @@
+<form method="post" action="{% url 'site_list' %}">
+    {% csrf_token %}
+    {% if editing %}<input type="hidden" name="id" value="{{ editing.pk }}">{% endif %}
+    {{ form.non_field_errors }}
+    <label>
+        <span data-i18n="client">Client</span>
+        {{ form.client }}
+        {{ form.client.errors }}
+    </label>
+    <label>
+        <span data-i18n="alias1">Alias 1</span>
+        {{ form.alias_1 }}
+        {{ form.alias_1.errors }}
+    </label>
+    <label>
+        <span data-i18n="alias2">Alias 2</span>
+        {{ form.alias_2 }}
+    </label>
+    <label>
+        <span data-i18n="alias3">Alias 3</span>
+        {{ form.alias_3 }}
+    </label>
+    <label>
+        <span data-i18n="alias4">Alias 4</span>
+        {{ form.alias_4 }}
+    </label>
+    <label>
+        <span data-i18n="street">Street</span>
+        {{ form.street }}
+        {{ form.street.errors }}
+    </label>
+    <label>
+        <span data-i18n="postalCode">Postal code</span>
+        {{ form.postal_code }}
+        {{ form.postal_code.errors }}
+    </label>
+    <label>
+        <span data-i18n="city">City</span>
+        {{ form.city }}
+        {{ form.city.errors }}
+    </label>
+    <label>
+        <span data-i18n="phone">Phone</span>
+        <div class="phone-input">
+            <span class="phone-prefix">+351</span>
+            {{ form.phone }}
+        </div>
+        {{ form.phone.errors }}
+    </label>
+    <label>
+        <span data-i18n="email">Email</span>
+        {{ form.email }}
+        {{ form.email.errors }}
+    </label>
+    <label>
+        <span data-i18n="contactName">Contact person</span>
+        {{ form.contact_name }}
+        {{ form.contact_name.errors }}
+    </label>
+    <label>
+        <span data-i18n="contactPosition">Position</span>
+        {{ form.contact_position }}
+        {{ form.contact_position.errors }}
+    </label>
+    <label>
+        <span data-i18n="notes">Notes</span>
+        {{ form.notes }}
+    </label>
+    <div class="drawer-actions">
+        {% if editing and user.can_delete %}
+        <button type="submit" name="action" value="delete" class="btn danger" data-i18n="delete">Delete</button>
+        {% endif %}
+        <button type="submit" name="action" value="save" class="btn primary" data-i18n="save">Save</button>
+    </div>
+</form>

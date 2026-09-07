@@ -1,0 +1,24 @@
+[Unit]
+Description=fri-uni Django app — gunicorn
+After=network.target postgresql.service
+Wants=postgresql.service
+
+[Service]
+Type=notify
+User=CHANGE_ME
+Group=CHANGE_ME
+WorkingDirectory=/srv/fri-uni
+EnvironmentFile=/srv/fri-uni/.env
+Environment=DJANGO_SETTINGS_MODULE=conf.settings.prod
+ExecStart=/srv/fri-uni/.venv/bin/gunicorn conf.wsgi:application \
+    --bind 127.0.0.1:8000 \
+    --workers 3 \
+    --timeout 120 \
+    --max-requests 2000 \
+    --max-requests-jitter 200
+Restart=always
+RestartSec=5
+KillSignal=SIGQUIT
+
+[Install]
+WantedBy=multi-user.target

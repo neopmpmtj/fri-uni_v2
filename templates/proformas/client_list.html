@@ -1,0 +1,49 @@
+{% extends "work_base.html" %}
+{% load static %}
+
+{% block extra_head %}
+<script src="{% static 'js/drawer.js' %}?v=1" defer></script>
+{% endblock %}
+
+{% block heading %}<span data-i18n="clients">Clients</span>{% endblock %}
+
+{% block actions %}
+<a class="btn primary" href="{% url 'client_list' %}?new=1" data-i18n="newClient">New client</a>
+{% endblock %}
+
+{% block content %}
+<div class="toolbar">
+    <form method="get" class="grow">
+        <input type="search" name="q" value="{{ q }}" data-i18n-placeholder="search" placeholder="Search">
+    </form>
+</div>
+<div class="table-wrap">
+    <table class="grid">
+        <thead>
+            <tr>
+                <th data-i18n="name">Name</th>
+                <th data-i18n="kind">Kind</th>
+                <th data-i18n="taxNumber">NIF</th>
+                <th data-i18n="city">City</th>
+                <th data-i18n="postalCode">Postal code</th>
+                <th data-i18n="actions">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for client in clients %}
+            <tr>
+                <td>{{ client.name }}</td>
+                <td>{% if client.kind == "person" %}<span data-i18n="person">Person</span>{% else %}<span data-i18n="company">Company</span>{% endif %}</td>
+                <td>{{ client.tax_number }}</td>
+                <td>{{ client.city }}</td>
+                <td>{{ client.postal_code }}</td>
+                <td><a href="{% url 'client_list' %}?id={{ client.pk }}" data-i18n="edit">Edit</a></td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="6" data-i18n="empty">No rows yet.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% include "includes/drawer.html" with drawer_title=editing.name|default:"New client" drawer_form_template="proformas/includes/client_form.html" %}
+{% endblock %}

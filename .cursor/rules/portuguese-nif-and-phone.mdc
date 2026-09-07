@@ -1,0 +1,97 @@
+---
+description: Portuguese NIF and phone — validate_tax_number, validate_phone_number; no silent trim
+globs: **/*.py,templates/**/*.html
+alwaysApply: false
+---
+
+# Portuguese NIF and phone fields
+
+Applies to `tax_number` and `phone` on **clients**, **sites**, and future entities (suppliers, contacts, etc.).
+
+**Per-entity required vs optional** — document in [`docs/data-points.md`](docs/data-points.md). This rule covers *how* to validate and wire forms.
+
+**Canonical module:** [`proformas/services.py`](proformas/services.py) — never duplicate length/checksum logic in views, templates, or CLI.
+
+## Shared — nine-digit form inputs
+
+`CharField(max_length=9)` on the model adds `maxlength=9` and `MaxLengthValidator(9)` on ModelForms. That **silently drops** extra digits before `clean_*` runs.
+
+Use `configure_nine_digit_form_field(field, required=...)` from `proformas/services.py` on every NIF and national-phone form field:
+
+- No HTML `maxlength=9` on the input
+- No `MaxLengthValidator(9)` on the form field (model storage may stay `max_length=9`)
+- **Never truncate or slice** digit strings in services, views, or JS
+
+**Meaningful tests (both field types):**
+
+- Unit: parametrized 8- and 10-digit input (fewer/more messages)
+- Integration: 10-digit POST rejected with “more than 9 digits” and no row saved
+
+Skip re-testing Django `required` or validators already covered elsewhere.
+
+---
+
+## NIF (`tax_number`)
+
+### Implementation
+
+- `validate_tax_number(value)` in [`proformas/services.py`](proformas/services.py)
+- Reference: [`ClientForm.clean_tax_number`](proformas/forms.py)
+
+### Validation (when provided)
+
+1. Strip non-digits
+2. Fewer than 9 → “NIF has fewer than 9 digits.”
+3. More than 9 → “NIF has more than 9 digits.”
+4. Exactly 9 → first-digit set + checksum in `validate_tax_number`
+5. Empty / whitespace → only when optional for that entity; save as `""`
+
+### Uniqueness
+
+- Constraint condition excludes blank: `~Q(tax_number="")`
+- Duplicate check in `clean_tax_number` only when normalized value is non-empty
+
+### Checklist — new/changed NIF field
+
+- [ ] `docs/data-points.md` states required vs optional
+- [ ] `clean_*` calls `validate_tax_number` (or skips when blank and optional)
+- [ ] `configure_nine_digit_form_field` on the form field
+- [ ] Uniqueness excludes `tax_number=""` when applicable
+
+---
+
+## Phone (`phone` + `phone_country`)
+
+### Implementation
+
+- `validate_phone_number(value, country_code=...)` in [`proformas/services.py`](proformas/services.py)
+- Length from `Country.phone_national_digits` for the given `country_code`
+- References: [`ClientForm`](proformas/forms.py) and [`SiteForm`](proformas/forms.py) (`clean_phone`, `phone_country`, `__init__`, `clean()`)
+- Templates: [`client_form.html`](templates/proformas/includes/client_form.html), [`site_form.html`](templates/proformas/includes/site_form.html)
+
+### Validation (when provided)
+
+1. Strip non-digits
+2. Fewer than expected → `Phone has fewer than N digits.`
+3. More than expected → `Phone has more than N digits.`
+4. Exactly expected length → return digit string (no checksum)
+5. Empty → only when phone is optional for that entity (clients and sites require phone today)
+
+### UI pattern
+
+- `phone_country` fk → [`countries`](proformas/models.py) table (dial code + national length)
+- Selector default Portugal, **disabled** until more countries are enabled
+- User types **national digits only**; template shows `+351` as visual prefix
+- Store `phone` as national digits only (`max_length=9` for PT); do not store `+351` in `phone`
+- Disabled `phone_country` omitted from POST — set in `clean()` from instance or default `PT` (both ClientForm and SiteForm)
+
+### HQ site copy
+
+On new client, [`save_client`](proformas/services.py) copies `phone_country`, `phone`, `email`, and contact fields to the auto-created HQ site. Follow the same pattern if adding other auto-copy paths.
+
+### Checklist — new/changed phone field
+
+- [ ] `docs/data-points.md` documents `phone_country` + national `phone`
+- [ ] `clean_*` calls `validate_phone_number` with correct `country_code`
+- [ ] `configure_nine_digit_form_field` on national number input
+- [ ] Seed/fixtures use 9-digit national values (not `+351 …`)

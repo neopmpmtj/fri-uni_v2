@@ -1,0 +1,73 @@
+{% extends "work_base.html" %}
+{% load static %}
+
+{% block extra_head %}
+<script src="{% static 'js/drawer.js' %}?v=1" defer></script>
+<script src="{% static 'js/new-draft-form.js' %}?v=1" defer></script>
+<script src="{% static 'js/proforma-detail.js' %}?v=2" defer></script>
+{% endblock %}
+
+{% block heading %}<span data-i18n="proformas">Proformas</span>{% endblock %}
+
+{% block actions %}
+<a class="btn primary" href="{% url 'proforma_list' %}?new=1" data-i18n="newDraft">New draft</a>
+{% endblock %}
+
+{% block content %}
+<div class="toolbar">
+    <form method="get" class="grow" style="display:flex;gap:0.75rem;align-items:center;">
+        <input type="search" name="q" value="{{ q }}" data-i18n-placeholder="search" placeholder="Search">
+        <select name="status" onchange="this.form.submit()">
+            <option value="" data-i18n="allStatuses">All statuses</option>
+            {% for value, label in status_choices %}
+            <option value="{{ value }}" {% if status == value %}selected{% endif %} data-i18n="{{ value }}">{{ label }}</option>
+            {% endfor %}
+        </select>
+        <input type="hidden" name="sort" value="{{ sort }}">
+        <input type="hidden" name="dir" value="{{ dir }}">
+    </form>
+</div>
+<div class="table-wrap">
+    <table class="grid">
+        <thead>
+            <tr>
+                <th>
+                    <a href="?{{ sort_urls.number }}" class="th-sort{% if sort == 'number' %} is-sorted is-{{ dir }}{% endif %}" data-i18n="number">Number</a>
+                </th>
+                <th>
+                    <a href="?{{ sort_urls.site }}" class="th-sort{% if sort == 'site' %} is-sorted is-{{ dir }}{% endif %}" data-i18n="site">Site</a>
+                </th>
+                <th data-i18n="status">Status</th>
+                <th>
+                    <a href="?{{ sort_urls.total }}" class="th-sort{% if sort == 'total' %} is-sorted is-{{ dir }}{% endif %}" data-i18n="grandTotal">Grand total</a>
+                </th>
+                <th>
+                    <a href="?{{ sort_urls.updated }}" class="th-sort{% if sort == 'updated' %} is-sorted is-{{ dir }}{% endif %}" data-i18n="updated">Updated</a>
+                </th>
+                <th data-i18n="actions">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in proformas %}
+            <tr>
+                <td><a href="{% url 'proforma_detail' row.pk %}">{{ row.number }}</a></td>
+                <td>{% if row.status == "draft" %}{{ row.site.client.name }} / {{ row.site.alias_1 }}{% else %}{{ row.client_name }} / {{ row.site_alias_1 }}{% endif %}</td>
+                <td>
+                    <span class="status-pill status-pill--{{ row.status }}" data-i18n="{{ row.status }}">{{ row.get_status_display }}</span>
+                    {% if row.accepted_at %}<span class="status-pill status-pill--accepted" data-i18n="accepted">Accepted</span>{% endif %}
+                    {% if row.rejected_at %}<span class="status-pill status-pill--rejected" data-i18n="rejected">Rejected</span>{% endif %}
+                    {% if row.superseded_by_id %}<span class="status-pill status-pill--superseded" data-i18n="superseded">Superseded</span>{% endif %}
+                </td>
+                <td>{{ row.grand_total|default:"" }}</td>
+                <td>{{ row.updated_at|date:"Y-m-d H:i" }}</td>
+                <td>{% include "proformas/includes/proforma_row_actions.html" with proforma=row %}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="6" data-i18n="empty">No rows yet.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% include "includes/drawer.html" with drawer_title="New draft" drawer_form_template="proformas/includes/new_draft_form.html" %}
+{% include "proformas/includes/outcome_confirm.html" %}
+{% endblock %}

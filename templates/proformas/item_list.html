@@ -1,0 +1,84 @@
+{% extends "work_base.html" %}
+{% load static %}
+
+{% block extra_head %}
+<script src="{% static 'js/drawer.js' %}?v=1" defer></script>
+<script src="{% static 'js/item-form.js' %}?v=2" defer></script>
+{% endblock %}
+
+{% block heading %}<span data-i18n="items">Items</span>{% endblock %}
+
+{% block actions %}
+<a class="btn primary" href="{% url 'item_list' %}?new=1" data-i18n="newItem">New item</a>
+{% endblock %}
+
+{% block content %}
+<div class="toolbar">
+    <form method="get" class="grow" style="display:flex;gap:0.75rem;align-items:center;">
+        <input type="search" name="q" value="{{ q }}" data-i18n-placeholder="search" placeholder="Search">
+        <select name="family" onchange="this.form.submit()">
+            <option value="" data-i18n="allFamilies">All families</option>
+            {% for f in families %}
+            <option value="{{ f.pk }}" {% if family_id == f.pk|stringformat:"s" %}selected{% endif %}>{{ f.name }}</option>
+            {% endfor %}
+        </select>
+        <select name="brand" onchange="this.form.submit()">
+            <option value="" data-i18n="allManufacturers">All manufacturers</option>
+            {% for b in manufacturers %}
+            <option value="{{ b.pk }}" {% if brand_id == b.pk|stringformat:"s" %}selected{% endif %}>{{ b.name }}</option>
+            {% endfor %}
+        </select>
+        <input type="hidden" name="sort" value="{{ sort }}">
+        <input type="hidden" name="dir" value="{{ dir }}">
+    </form>
+</div>
+<div class="table-wrap">
+    <table class="grid">
+        <thead>
+            <tr>
+                <th>
+                    <a href="?{{ sort_urls.internal_code }}" class="th-sort{% if sort == 'internal_code' %} is-sorted is-{{ dir }}{% endif %}" data-i18n="internalCode">Internal code</a>
+                </th>
+                <th>
+                    <a href="?{{ sort_urls.family }}" class="th-sort{% if sort == 'family' %} is-sorted is-{{ dir }}{% endif %}" data-i18n="family">Family</a>
+                </th>
+                <th>
+                    <a href="?{{ sort_urls.sub_family }}" class="th-sort{% if sort == 'sub_family' %} is-sorted is-{{ dir }}{% endif %}" data-i18n="subFamily">Sub-family</a>
+                </th>
+                <th>
+                    <a href="?{{ sort_urls.manufacturer }}" class="th-sort{% if sort == 'manufacturer' %} is-sorted is-{{ dir }}{% endif %}" data-i18n="manufacturer">Manufacturer</a>
+                </th>
+                <th>
+                    <a href="?{{ sort_urls.kind }}" class="th-sort{% if sort == 'kind' %} is-sorted is-{{ dir }}{% endif %}" data-i18n="kind">Kind</a>
+                </th>
+                <th>
+                    <a href="?{{ sort_urls.power }}" class="th-sort{% if sort == 'power' %} is-sorted is-{{ dir }}{% endif %}" data-i18n="power">Power</a>
+                </th>
+                <th data-i18n="unit">Unit</th>
+                <th data-i18n="maxVolumeM3">Max m3</th>
+                <th data-i18n="vat">VAT</th>
+                <th data-i18n="actions">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in items %}
+            <tr>
+                <td>{{ row.internal_code }}</td>
+                <td>{{ row.sub_family.family.name }}</td>
+                <td>{{ row.sub_family.name }}</td>
+                <td>{{ row.brand.name }}</td>
+                <td>{{ row.kind }}</td>
+                <td>{{ row.power.power }}</td>
+                <td>{{ row.power.unit }}</td>
+                <td>{% if row.max_volume_m3 %}{{ row.max_volume_m3 }}{% else %}—{% endif %}</td>
+                <td>{{ row.vat_rate.label }}</td>
+                <td><a href="{% url 'item_list' %}?id={{ row.pk }}" data-i18n="edit">Edit</a></td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="10" data-i18n="empty">No rows yet.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% include "includes/drawer.html" with drawer_title=editing.internal_code|default:"New item" drawer_form_template="proformas/includes/item_form.html" %}
+{% endblock %}

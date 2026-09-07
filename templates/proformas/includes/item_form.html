@@ -1,0 +1,53 @@
+<form method="post" action="{% url 'item_list' %}" id="item-form">
+    {% csrf_token %}
+    {% if editing %}<input type="hidden" name="id" value="{{ editing.pk }}">{% endif %}
+    {{ form.non_field_errors }}
+    <label>
+        <span data-i18n="family">Family</span>
+        {{ form.family }}
+    </label>
+    <label>
+        <span data-i18n="subFamily">Sub-family</span>
+        {{ form.sub_family }}
+        {{ form.sub_family.errors }}
+    </label>
+    <label>
+        <span data-i18n="manufacturer">Manufacturer</span>
+        {{ form.brand }}
+        {{ form.brand.errors }}
+    </label>
+    <label>
+        <span data-i18n="internalCode">Internal code</span>
+        {{ form.internal_code }}
+        {{ form.internal_code.errors }}
+    </label>
+    <label>
+        <span data-i18n="kind">Kind</span>
+        {{ form.kind }}
+        {{ form.kind.errors }}
+    </label>
+    <label>
+        <span data-i18n="power">Power</span>
+        {{ form.power }}
+        {{ form.power.errors }}
+    </label>
+    <label>
+        <span data-i18n="maxVolumeM3">Max volume m3</span>
+        {{ form.max_volume_m3 }}
+        {{ form.max_volume_m3.errors }}
+    </label>
+    <label>
+        <span data-i18n="vat">VAT</span>
+        {{ form.vat_rate }}
+        {{ form.vat_rate.errors }}
+    </label>
+    <label>
+        <span>{{ form.is_default }} <span data-i18n="default">Default</span></span>
+    </label>
+    <div class="drawer-actions">
+        {% if editing and user.can_delete %}
+        <button type="submit" name="action" value="delete" class="btn danger" data-i18n="delete">Delete</button>
+        {% endif %}
+        <button type="submit" name="action" value="save" class="btn primary" data-i18n="save">Save</button>
+    </div>
+</form>

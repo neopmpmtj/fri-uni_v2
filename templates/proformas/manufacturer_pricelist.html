@@ -1,0 +1,51 @@
+{% extends "work_base.html" %}
+{% load static %}
+
+{% block extra_head %}
+<script src="{% static 'js/drawer.js' %}?v=1" defer></script>
+{% endblock %}
+
+{% block heading %}{{ brand.name }} — <span data-i18n="pricelist">Pricelist</span>{% endblock %}
+
+{% block actions %}
+<a class="btn ghost" href="{% url 'manufacturer_list' %}" data-i18n="manufacturers">Manufacturers</a>
+{% endblock %}
+
+{% block content %}
+<div class="toolbar">
+    <form method="get" class="grow">
+        <input type="search" name="q" value="{{ q }}" data-i18n-placeholder="search" placeholder="Search">
+    </form>
+</div>
+<div class="table-wrap">
+    <table class="grid">
+        <thead>
+            <tr>
+                <th data-i18n="internalCode">Internal code</th>
+                <th data-i18n="subFamily">Sub-family</th>
+                <th data-i18n="kind">Kind</th>
+                <th data-i18n="power">Power</th>
+                <th data-i18n="unit">Unit</th>
+                <th data-i18n="salesPrice">Sales price</th>
+                <th data-i18n="actions">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in items %}
+            <tr>
+                <td>{{ row.internal_code }}</td>
+                <td>{{ row.sub_family.name }}</td>
+                <td>{{ row.kind }}</td>
+                <td>{{ row.power.power }}</td>
+                <td>{{ row.power.unit }}</td>
+                <td>{{ row.list_price }}</td>
+                <td><a href="{% url 'manufacturer_pricelist' brand.pk %}?id={{ row.pk }}" data-i18n="edit">Edit</a></td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="7" data-i18n="empty">No rows yet.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% include "includes/drawer.html" with drawer_title=editing.internal_code|default:"Sales price" drawer_form_template="proformas/includes/price_form.html" %}
+{% endblock %}

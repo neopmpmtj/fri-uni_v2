@@ -1,0 +1,21 @@
+<form method="post" action="{% url 'manufacturer_pricelist' brand.pk %}">
+    {% csrf_token %}
+    {% if editing %}<input type="hidden" name="id" value="{{ editing.pk }}">{% endif %}
+    {{ form.non_field_errors }}
+    {% if editing %}
+    <p class="muted">{{ editing.internal_code }} — {{ editing.sub_family.name }} {{ editing.kind }} {{ editing.power.power }} {{ editing.power.unit }}</p>
+    {% endif %}
+    <label>
+        <span data-i18n="salesPrice">Sales price</span>
+        {{ form.list_price }}
+        {{ form.list_price.errors }}
+    </label>
+    <label>
+        <span data-i18n="reason">Reason</span>
+        {{ form.reason }}
+        {{ form.reason.errors }}
+    </label>
+    <div class="drawer-actions">
+        <button type="submit" name="action" value="save" class="btn primary" data-i18n="save">Save</button>
+    </div>
+</form>

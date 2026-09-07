@@ -1,0 +1,47 @@
+{% extends "work_base.html" %}
+{% load static %}
+
+{% block extra_head %}
+<script src="{% static 'js/drawer.js' %}?v=1" defer></script>
+{% endblock %}
+
+{% block heading %}<span data-i18n="vatRates">VAT rates</span>{% endblock %}
+
+{% block actions %}
+<a class="btn primary" href="{% url 'vat_rate_list' %}?new=1" data-i18n="newVatRate">New VAT rate</a>
+{% endblock %}
+
+{% block content %}
+<div class="toolbar">
+    <form method="get" class="grow">
+        <input type="search" name="q" value="{{ q }}" data-i18n-placeholder="search" placeholder="Search">
+    </form>
+</div>
+<div class="table-wrap">
+    <table class="grid">
+        <thead>
+            <tr>
+                <th data-i18n="vatCode">Code</th>
+                <th data-i18n="vatLabel">Label</th>
+                <th data-i18n="vatPercent">Percent</th>
+                <th data-i18n="default">Default</th>
+                <th data-i18n="actions">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in vat_rates %}
+            <tr>
+                <td>{{ row.code }}</td>
+                <td>{{ row.label }}</td>
+                <td>{{ row.as_percent }}</td>
+                <td>{% if row.is_default %}yes{% else %}—{% endif %}</td>
+                <td><a href="{% url 'vat_rate_list' %}?id={{ row.pk }}" data-i18n="edit">Edit</a></td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5" data-i18n="empty">No rows yet.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% include "includes/drawer.html" with drawer_title=editing.code|default:"New VAT rate" drawer_form_template="proformas/includes/vat_rate_form.html" %}
+{% endblock %}

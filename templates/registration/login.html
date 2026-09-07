@@ -1,0 +1,31 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title data-i18n="loginTitle">Sign in</title>
+    {% include "includes/head.html" %}
+</head>
+<body class="login-body">
+    <main class="login-card">
+        <h1 data-i18n="loginTitle">Sign in</h1>
+        <form method="post" action="{% url 'login' %}">
+            {% csrf_token %}
+            {% if form.non_field_errors %}
+            <p class="form-error">{{ form.non_field_errors.0 }}</p>
+            {% endif %}
+            <label>
+                <span data-i18n="email">Email</span>
+                <input type="email" name="username" value="{{ form.username.value|default:'' }}" required autocomplete="username" data-i18n-placeholder="email" placeholder="Email">
+            </label>
+            <label>
+                <span data-i18n="password">Password</span>
+                <input type="password" name="password" required autocomplete="current-password">
+            </label>
+            <input type="hidden" name="next" value="{{ next }}">
+            <button type="submit" class="btn primary" data-i18n="login">Sign in</button>
+        </form>
+    </main>
+</body>
+</html>

@@ -1,0 +1,10 @@
+<div id="drawer-backdrop" class="backdrop" {% if not drawer_open %}hidden{% endif %}></div>
+<aside id="drawer" class="drawer" {% if not drawer_open %}hidden{% endif %}>
+    <div class="drawer-head">
+        <h2 id="drawer-title">{{ drawer_title }}</h2>
+        <button type="button" class="btn ghost" id="drawer-close" data-i18n="close">Close</button>
+    </div>
+    <div class="drawer-body">
+        {% include drawer_form_template %}
+    </div>
+</aside>

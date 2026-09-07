@@ -1,0 +1,11 @@
+{% extends "work_base.html" %}
+
+{% block heading %}{{ labels.title }} {{ proforma.number }}{% endblock %}
+
+{% block actions %}
+<a class="btn primary" href="{% url 'proforma_pdf' proforma.pk %}" data-i18n="downloadPdf">Download PDF</a>
+{% endblock %}
+
+{% block content %}
+{% include "proformas/includes/quote_body.html" %}
+{% endblock %}

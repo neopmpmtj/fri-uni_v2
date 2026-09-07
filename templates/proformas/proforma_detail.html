@@ -1,0 +1,152 @@
+{% extends "work_base.html" %}
+{% load static %}
+
+{% block extra_head %}
+<script src="{% static 'js/drawer.js' %}?v=1" defer></script>
+<script src="{% static 'js/line-form.js' %}?v=2" defer></script>
+<script src="{% static 'js/proforma-detail.js' %}?v=2" defer></script>
+{% endblock %}
+
+{% block heading %}{{ proforma.number }}{% endblock %}
+
+{% block actions %}
+{% if is_draft %}
+<a class="btn primary" href="{% url 'proforma_detail' proforma.pk %}?new_line=1" data-i18n="addLine">Add line</a>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<p class="muted">{% if is_draft %}{{ proforma.site.client.name }} / {{ proforma.site.alias_1 }}{% else %}{{ proforma.client_name }} / {{ proforma.site_alias_1 }}{% endif %} — <span class="status-pill status-pill--{{ proforma.status }}" data-i18n="{{ proforma.status }}">{{ proforma.get_status_display }}</span>{% if is_accepted %} <span class="status-pill status-pill--accepted" data-i18n="accepted">Accepted</span>{% endif %}{% if is_rejected %} <span class="status-pill status-pill--rejected" data-i18n="rejected">Rejected</span>{% endif %}{% if is_superseded %} <span class="status-pill status-pill--superseded" data-i18n="superseded">Superseded</span>{% endif %}</p>
+{% if proforma.replaces_id %}
+<p class="muted"><span data-i18n="revisionOf">Revision of</span> <a href="{% url 'proforma_detail' proforma.replaces_id %}">{{ proforma.replaces.number }}</a></p>
+{% endif %}
+{% if is_superseded %}
+<p class="muted"><span data-i18n="supersededNote">Superseded by</span> <a href="{% url 'proforma_detail' proforma.superseded_by_id %}">{{ proforma.superseded_by.number }}</a></p>
+{% endif %}
+
+<form method="post" class="header-fields">
+    {% csrf_token %}
+    {{ header_form.non_field_errors }}
+    <label>
+        <span data-i18n="discountPercent">Upfront discount %</span>
+        {{ header_form.upfront_discount_percent }}
+        {{ header_form.upfront_discount_percent.errors }}
+    </label>
+    <label>
+        <span data-i18n="extraLabour">Extra labour</span>
+        {{ header_form.extra_labour }}
+        {{ header_form.extra_labour.errors }}
+    </label>
+    <label style="grid-column:1 / -1;">
+        <span data-i18n="observations">Observations</span>
+        {{ header_form.observations }}
+    </label>
+{% if is_draft %}
+    <div>
+        <button type="submit" name="action" value="save_header" class="btn primary" data-i18n="save">Save</button>
+        <button type="submit" name="action" value="issue" class="btn primary" data-i18n="issue">Issue</button>
+    </div>
+    {% endif %}
+</form>
+{% if is_issued %}
+<div class="proforma-actions">
+    {% if can_change or not is_superseded %}
+    <div class="proforma-actions__row">
+        <div class="proforma-actions__start">
+            {% if can_change %}
+            <form method="post" action="{% url 'proforma_change' %}" class="inline-form">
+                {% csrf_token %}
+                <input type="hidden" name="id" value="{{ proforma.pk }}">
+                <button type="submit" class="btn primary" data-i18n="change">Change</button>
+            </form>
+            {% endif %}
+        </div>
+        {% if not is_superseded %}
+        <div class="proforma-actions__end">
+            {% if is_accepted %}
+            <button type="submit" name="action" value="unaccept_proforma" class="btn ghost" form="issue-form" data-i18n="clearAccepted">Clear accepted</button>
+            {% elif is_rejected %}
+            <button type="submit" name="action" value="unreject_proforma" class="btn ghost" form="issue-form" data-i18n="clearRejected">Clear rejected</button>
+            {% else %}
+            <button type="submit" name="action" value="accept_proforma" class="btn primary" form="issue-form" data-i18n="markAccepted" data-confirm-i18n="confirmMarkAccepted">Mark accepted</button>
+            <button type="submit" name="action" value="reject_proforma" class="btn danger" form="issue-form" data-i18n="markRejected" data-confirm-i18n="confirmMarkRejected">Mark rejected</button>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+    <div class="proforma-actions__row">
+        <a class="btn primary" href="{% url 'proforma_quote' proforma.pk %}" data-i18n="viewQuote">View quote</a>
+        <a class="btn ghost" href="{% url 'proforma_pdf' proforma.pk %}" data-i18n="downloadPdf">Download PDF</a>
+    </div>
+</div>
+<form id="issue-form" method="post">{% csrf_token %}</form>
+{% include "proformas/includes/outcome_confirm.html" %}
+{% endif %}
+
+<dl class="totals">
+    <div>
+        <dt data-i18n="equipmentSubtotal">Equipment</dt>
+        <dd>{{ proforma.equipment_subtotal }}</dd>
+    </div>
+    <div>
+        <dt data-i18n="tubingTotal">Tubing</dt>
+        <dd>{{ proforma.tubing_total }}</dd>
+    </div>
+    {% if proforma.extra_tubing_metres %}
+    <div>
+        <dt data-i18n="extraTubingMetres">Extra tubing</dt>
+        <dd>{{ proforma.extra_tubing_metres }} m</dd>
+    </div>
+    {% endif %}
+    <div>
+        <dt data-i18n="discountAmount">Discount</dt>
+        <dd>{{ proforma.discount_amount }}</dd>
+    </div>
+    <div>
+        <dt data-i18n="grandTotal">Grand total</dt>
+        <dd>{{ proforma.grand_total }}</dd>
+    </div>
+</dl>
+
+<div class="table-wrap">
+    <table class="grid">
+        <thead>
+            <tr>
+                <th data-i18n="item">Item</th>
+                <th data-i18n="quantity">Quantity</th>
+                <th data-i18n="extraTubing">Extra tubing</th>
+                <th data-i18n="lineTotal">Line total</th>
+                <th data-i18n="actions">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for line in lines %}
+            <tr>
+                <td>
+                    {% if is_draft %}
+                    {{ line.item }}
+                    {% else %}
+                    {{ line.internal_code }} {{ line.brand_name }} {{ line.family_name }} {{ line.sub_family_name }} {{ line.kind }} {{ line.power_value }} {{ line.power_unit }}
+                    {% endif %}
+                </td>
+                <td>{{ line.quantity }}</td>
+                <td>{% if line.extra_tubing %}{% if is_draft %}{{ line.tubing_length }}{% else %}{{ line.tubing_length_value }} m{% endif %}{% else %}—{% endif %}</td>
+                <td>{{ line.line_total }}</td>
+                <td>
+                    {% if is_draft %}
+                    <a href="{% url 'proforma_detail' proforma.pk %}?line={{ line.pk }}" data-i18n="edit">Edit</a>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5" data-i18n="empty">No rows yet.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% if is_draft %}
+{% include "includes/drawer.html" with drawer_title="Line" drawer_form_template="proformas/includes/line_form.html" %}
+{% endif %}
+{% endblock %}
