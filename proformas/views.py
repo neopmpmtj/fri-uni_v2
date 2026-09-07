@@ -327,6 +327,7 @@ def proforma_detail(request, pk):
             "upfront_discount_percent": proforma.upfront_discount_percent,
             "extra_labour": proforma.extra_labour,
             "observations": proforma.observations,
+            "override_checks": proforma.override_checks,
         }
     )
     line_form = ProformaLineForm()
@@ -355,6 +356,7 @@ def proforma_detail(request, pk):
                         ],
                         extra_labour=header_form.cleaned_data["extra_labour"],
                         observations=header_form.cleaned_data["observations"],
+                        override_checks=header_form.cleaned_data["override_checks"],
                     )
                     return redirect("proforma_detail", pk=proforma.pk)
             elif action == "delete_line" and is_draft:
@@ -418,6 +420,7 @@ def proforma_detail(request, pk):
                         ],
                         extra_labour=header_form.cleaned_data["extra_labour"],
                         observations=header_form.cleaned_data["observations"],
+                        override_checks=header_form.cleaned_data["override_checks"],
                     )
                     proforma.refresh_from_db()
                     services.issue_proforma(proforma, request.user)

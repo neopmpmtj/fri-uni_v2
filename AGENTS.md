@@ -85,7 +85,7 @@ Mark complete during session-handoff: `- [x] ... (completed YYYY-MM-DD)`
 
 ## Session
 
-**Done:** Migration `0019` lookup seeds; two-tables-vs-one docs; 1-port outdoor line edit/delete; pairing leftover cleanup. **149 tests** green. Tree committed on `main`.
+**Done:** Override checks (`0020`) on draft header next to Save/Issue; skips multi occupancy at add indoor and Issue; split still strict. **154 tests** green.
 
 **Not done:** Production deploy; letterhead; real prices; volume auto-pick; capacity math; VAT on quote math/PDF; contact fields on issued-quote snapshots/PDF.
 

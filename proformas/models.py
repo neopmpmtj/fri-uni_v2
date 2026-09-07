@@ -492,6 +492,7 @@ class Proforma(AuditedModel):
     upfront_discount_percent = models.DecimalField(max_digits=5, decimal_places=2)
     extra_labour = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     observations = models.TextField(blank=True)
+    override_checks = models.BooleanField(default=False)
     equipment_subtotal = models.DecimalField(
         max_digits=12, decimal_places=2, null=True, blank=True
     )

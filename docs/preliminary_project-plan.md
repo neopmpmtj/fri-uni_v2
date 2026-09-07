@@ -494,3 +494,24 @@ None.
 ### Open questions still open
 
 None.
+
+## Update 2026-09-07 — override checks on multi occupancy
+
+### What changed
+
+- Draft proforma header has **Override checks** (persisted `override_checks`, default false) next to Save / Issue.
+- When true: staff may add more indoor lines than a multi outdoor’s ports, and Issue does not require 2..ports indoor units.
+- Split (1-port outdoor) still requires exactly one indoor. Parent-line and `item_matches` checks stay on.
+
+### Apps added/removed
+
+None.
+
+### Decisions
+
+- Per-proforma flag, not a global parameter. Save stores it; Issue saves the header then issues.
+- Exceptional override only for multi occupancy, not for split completeness.
+
+### Open questions still open
+
+None.

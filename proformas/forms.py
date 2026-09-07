@@ -255,6 +255,7 @@ class ProformaHeaderForm(forms.Form):
     )
     extra_labour = forms.DecimalField(max_digits=12, decimal_places=2, min_value=0)
     observations = forms.CharField(required=False, widget=forms.Textarea(attrs={"rows": 3}))
+    override_checks = forms.BooleanField(required=False)
 
 
 class DataDefaultSelect(forms.Select):

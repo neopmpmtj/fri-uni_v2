@@ -388,6 +388,7 @@ Do not implement in these phases:
 - [x] Migration-seed parameters, Air conditioners family, brands, tubing lengths (completed 2026-09-07)
 - [x] Two tables vs one: clients/sites vs items documented (completed 2026-09-07)
 - [x] Line drawer: edit/delete 1-port split outdoor (completed 2026-09-07)
+- [x] Override checks: skip multi indoor-count at add indoor and Issue (completed 2026-09-07)
 
 ## Tests policy
 

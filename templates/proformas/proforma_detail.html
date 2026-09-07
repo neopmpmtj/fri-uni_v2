@@ -43,9 +43,13 @@
         {{ header_form.observations }}
     </label>
 {% if is_draft %}
-    <div>
+    <div class="header-fields__actions">
         <button type="submit" name="action" value="save_header" class="btn primary" data-i18n="save">Save</button>
         <button type="submit" name="action" value="issue" class="btn primary" data-i18n="issue">Issue</button>
+        <label class="header-fields__override">
+            <span data-i18n="overrideChecks">Override checks</span>
+            {{ header_form.override_checks }}
+        </label>
     </div>
     {% endif %}
 </form>

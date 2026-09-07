@@ -300,6 +300,7 @@ Same validation and snapshot rules as the web app. Intended for LLM agent invoca
   - `upfront_discount_percent` — number, required (copied from parameters on create; overridable while draft)
   - `extra_labour` — money, required, default 0
   - `observations` — text, optional
+  - `override_checks` — boolean, required, default false. Staff checkbox on the draft header next to Save / Issue. When true, skip multi outdoor indoor-count checks: add indoor past `max_indoor_ports`, and issue without requiring 2..`max_indoor_ports` children. Split (`ports=1`) still requires exactly one indoor. Compatibility (`item_matches`) and parent-line rules stay on. Not a money field; freeze rules unchanged; copied on **Change**.
   - `equipment_subtotal` — money, optional until issue, then required frozen
   - `tubing_total` — money, optional until issue, then required frozen
   - `extra_tubing_metres` — number (metres), optional until issue, then required frozen; sum over extra-tubing lines of `quantity × length`. Not money. `tubing_total` stays the money sum.
@@ -371,7 +372,7 @@ Same validation and snapshot rules as the web app. Intended for LLM agent invoca
   - Extra tubing is **per indoor line** and charged **per machine**: `line_total = quantity × (unit_price + tubing_amount)`.
   - On one invoice, some indoor runs may need extra tubing and some may not.
   - Quote entry: **split** starts from design line → indoor SKU → auto-add matched ports=1 outdoor as `parent_line`. **Multi** starts from outdoor (`ports≥2`) then indoor children from `item_matches`.
-  - At issue: every indoor has a parent; split outdoor has exactly 1 child; multi outdoor has 2..`max_indoor_ports` children; each indoor is in `item_matches` for that outdoor.
+  - At issue: every indoor has a parent; split outdoor has exactly 1 child; multi outdoor has 2..`max_indoor_ports` children unless `override_checks` is true; each indoor is in `item_matches` for that outdoor.
   - After issue, money and snapshot fields do not change if catalog prices or names change.
 
 ## Rejected

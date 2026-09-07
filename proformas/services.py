@@ -314,6 +314,7 @@ def update_draft(
     upfront_discount_percent=None,
     extra_labour=None,
     observations=None,
+    override_checks=None,
 ):
     require_draft(proforma)
     if upfront_discount_percent is not None:
@@ -324,6 +325,8 @@ def update_draft(
         proforma.extra_labour = labour_value(extra_labour)
     if observations is not None:
         proforma.observations = observations
+    if override_checks is not None:
+        proforma.override_checks = bool(override_checks)
     proforma.updated_by = user
     proforma.save()
     return recompute_draft_totals(proforma)
@@ -448,7 +451,8 @@ def _validate_indoor_parent(proforma, indoor_item, parent_line, *, exclude_line_
         )
     ports = parent_line.item.max_indoor_ports or 0
     child_count = _live_children(parent_line, exclude_line_id=exclude_line_id).count()
-    if child_count >= ports:
+    skip_port_cap = bool(proforma.override_checks) and ports >= 2
+    if child_count >= ports and not skip_port_cap:
         raise ValidationError(
             f"This outdoor unit only has {ports} indoor port(s)."
         )
@@ -953,7 +957,7 @@ def _validate_systems_for_issue(proforma):
                 raise ValidationError(
                     "Each split outdoor must have exactly one indoor unit."
                 )
-        elif count < 2 or count > ports:
+        elif not proforma.override_checks and (count < 2 or count > ports):
             raise ValidationError(
                 f"A multi outdoor with {ports} ports needs 2 to {ports} indoor units."
             )
@@ -1150,8 +1154,9 @@ def change_proforma(proforma, user):
             observations=proforma.observations,
         )
         new.replaces = proforma
+        new.override_checks = proforma.override_checks
         new.updated_by = user
-        new.save(update_fields=["replaces", "updated_at", "updated_by"])
+        new.save(update_fields=["replaces", "override_checks", "updated_at", "updated_by"])
         copied = {}
         source_lines = list(
             proforma.lines.select_related("item", "tubing_length").order_by("pk")

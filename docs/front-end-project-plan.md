@@ -175,7 +175,7 @@ Analog of a warehouse **console**, not a Django form wizard.
 - Header **on the page** (not in a drawer): upfront discount %, extra labour, observations; live totals including stored extra-tubing metres when non-zero; **Issue** / **Change** when allowed.
 - Lines: `.grid` grouped by system (outdoor heading, indoor rows under it; item snapshot or live catalog name while draft, qty, tubing, line total).
 - **Add split / Add multi / Add indoor = drawer.** Family hidden while only one live family. **Split:** manufacturer → design line → indoor (matched ports=1 outdoor auto-added). **Multi:** manufacturer → outdoor (`ports≥2`). **Add indoor** on an outdoor row: design line → indoor from `item_matches`. Quantity; extra tubing on indoor lines only; tubing length only when extra tubing is checked (shortest catalog length pre-selected). If the design line has a manufacturer, that control is filled and inactive.
-- **Draft:** editable; optional “Revision of PF-…” when `replaces` is set.
+- **Draft:** editable; **Override checks** checkbox next to Save / Issue (persisted; skips multi occupancy rules); optional “Revision of PF-…” when `replaces` is set.
 - **Issued:** read-only; **Change** (copy to new draft) when not accepted, not rejected, and not superseded; **Mark accepted** / **Mark rejected** when neither is set (Yes/No confirm, Yes default); **Clear accepted** or **Clear rejected** when one is set; **View quote** / **Download PDF**. Action row: Change left, accepted/rejected (or clear) grouped on the right; View quote + Download PDF on the next row, side by side.
 - **Issued superseded:** read-only; link to replacement draft; no Change.
 - Implementation: Phases 5–7 + supersede slice.

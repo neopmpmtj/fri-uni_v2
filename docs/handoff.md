@@ -1,6 +1,6 @@
 # Session handoff
 
-> **Last updated:** 2026-09-07 18:47 WEST (Europe/Lisbon)  
+> **Last updated:** 2026-09-07 19:20 WEST (Europe/Lisbon)  
 > Replace with the current date and time whenever you edit this file.
 
 ## Project
@@ -17,25 +17,22 @@ Staff app is **`proformas`** (`accounts` is User/login only). Playbook: [`docs/p
 
 Catalog: **family → indoor design line (`sub_families`) → indoor item**; outdoor items have **no** design line (brand + power + `max_indoor_ports` + code). Pairing is **`item_matches`**. Quote lines group under the outdoor (`parent_line`). Sales price is edited only on the manufacturer pricelist (reason required). Django admin is users and audit only.
 
-Do not run `seed_demo` in production. Fresh local DB: `rm -f db.sqlite3`, then `migrate` and `seed_demo`. Restart `runserver` after schema changes. After pulling this tree, run **`migrate`** (migration `0019`).
+Do not run `seed_demo` in production. Fresh local DB: `rm -f db.sqlite3`, then `migrate` and `seed_demo`. Restart `runserver` after schema changes. After pulling this tree, run **`migrate`** (migration `0020`).
 
 **Two tables vs one:** `clients` / `sites` are different nouns (quote → site). Indoor/outdoor stay one `items` table + `item_matches`. See [`data-points.md`](data-points.md) and preliminary-plan update 2026-09-07.
 
 **Proforma document life:** `draft` | `issued` only. **Accepted** and **rejected** are overlays (`accepted_at` / `rejected_at`), mutually exclusive (clear one before marking the other). **Change** is blocked when accepted or rejected (or already superseded). There is no `cancelled` status (legacy rows mapped to `issued` in `0016`).
 
-**AC systems:** **Split** = 1 outdoor (`ports=1`) + 1 indoor (staff start from the indoor; default match auto-adds the outdoor). **Multi** = 1 outdoor (`ports≥2`) + 2+ indoors (staff start from the outdoor, then Add indoor). Extra tubing stays on indoor runs. Editing a 1-port outdoor line uses the outdoor drawer (not indoor/design-line).
+**AC systems:** **Split** = 1 outdoor (`ports=1`) + 1 indoor (staff start from the indoor; default match auto-adds the outdoor). **Multi** = 1 outdoor (`ports≥2`) + 2+ indoors (staff start from the outdoor, then Add indoor). Extra tubing stays on indoor runs. Editing a 1-port outdoor line uses the outdoor drawer (not indoor/design-line). **Override checks** on the draft header skips multi indoor-count rules (add past ports; issue without 2..ports). Split stays exact-one indoor.
 
 ## Done (this session)
 
-- **Migration `0019`:** parameters, Air conditioners family, brands, tubing lengths on `migrate` (no `seed_demo` required for those lookups)
-- Pairing leftover cleanup: unused `subFamily` i18n, `data-kind`/`data-ports`, unread `hide_family` on line form, unstyled `line-child`
-- **Two tables vs one** documented (clients/sites vs items)
-- **Fix:** edit/delete 1-port split outdoor lines (`outdoor_only` for any outdoor; Delete `formnovalidate`)
-- **Tests:** **149 passing** (`pytest`)
-- Working tree committed on `main` (`a4ff192` and parents)
+- **Override checks:** persisted `Proforma.override_checks` (migration `0020`); checkbox next to Save / Issue. Skips multi occupancy at add indoor and Issue. Split still strict. Copied on Change before lines.
+- **Tests:** **154 passing** (`pytest`)
 
 ## Done (earlier)
 
+- Migration `0019` lookup seeds; pairing leftover cleanup; two-tables-vs-one docs; 1-port split outdoor edit/delete
 - AC pairing model; seed rewrite; migration `0018`; crash/freeze audit; rejected overlay; Phases 1–8; catalog slice; VAT; client/site identity; Change/supersede
 
 ## Not done
