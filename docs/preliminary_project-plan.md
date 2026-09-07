@@ -473,3 +473,24 @@ Same pattern as VAT rates, powers, countries, and contact positions: lookup rows
 ### Open questions still open
 
 None.
+
+## Update 2026-09-07 — Two tables vs one
+
+### What changed
+
+Nothing in schema. Documented when two tables help vs one table + a relation.
+
+### Apps added/removed
+
+None.
+
+### Decisions
+
+- **Two tables** when rows answer different questions and other records hang off one of them. `clients` (who pays) vs `sites` (where you install); a quote always points at a site, never at the client row.
+- **One table + `kind`** when it is the same noun. Indoor and outdoor stay on `items`.
+- **Relation table** for M:N compatibility (`item_matches`), not a second product master. Quote grouping is `proforma_lines.parent_line`, not a catalog parent.
+- A 1:N FK is ownership (`site.client`). M:N is pairing. “A client has more than one site” is not the same problem as “an outdoor takes more than one indoor”. Extra tables do not by themselves add list filters or visibility.
+
+### Open questions still open
+
+None.

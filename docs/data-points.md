@@ -134,7 +134,7 @@ Same validation and snapshot rules as the web app. Intended for LLM agent invoca
 - Reason-required fields: none
 - Extra history table: no
 - Extra activity table: no
-- Notes: not a login. No contacts table, no separate addresses table. Billing address lives on the client; install/GPS address lives on each site.
+- Notes: not a login. No contacts table, no separate addresses table. Billing address lives on the client; install/GPS address lives on each site. Sites are a separate table because a quote hangs off a place (`proformas.site`), not because a client can have many phone numbers; HQ is a site flag.
 
 ### sites
 
@@ -255,7 +255,7 @@ Same validation and snapshot rules as the web app. Intended for LLM agent invoca
 - Reason-required fields: `list_price`
 - Extra history table: no (locked lines hold the snapshot; no catalog price-history screen)
 - Extra activity table: no
-- Notes: pairing is `item_matches`, not a catalog FK from indoor to outdoor. Volume-based auto-pick is deferred (field stored only). New items start at sales price 0 until priced on the manufacturer page. VAT is identity on the item; line totals do not include VAT yet. When the indoor design line has a manufacturer, the item’s `brand` is copied from that design line and cannot be chosen independently.
+- Notes: pairing is `item_matches`, not a catalog FK from indoor to outdoor and not a second items table (`interior.exterior_id` stays rejected). Indoor and outdoor stay one table (same noun, `kind`). Volume-based auto-pick is deferred (field stored only). New items start at sales price 0 until priced on the manufacturer page. VAT is identity on the item; line totals do not include VAT yet. When the indoor design line has a manufacturer, the item’s `brand` is copied from that design line and cannot be chosen independently.
 
 ### item_matches
 
