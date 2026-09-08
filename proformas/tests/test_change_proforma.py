@@ -86,8 +86,13 @@ def test_is_active_for_stats(issued, staff_user):
     assert is_active_for_stats(issued) is False
 
 
+LIST_CHANGE_BUTTON = (
+    b'<button type="submit" class="btn-link" data-i18n="change">Change</button>'
+)
+
+
 @pytest.mark.integration
-def test_list_change_and_superseded_pill(client, staff_user, site, indoor):
+def test_list_open_does_not_supersede(client, staff_user, site, indoor):
     proforma = create_draft(site, staff_user)
     add_line(proforma, indoor, staff_user)
     issue_proforma(proforma, staff_user)
@@ -95,7 +100,28 @@ def test_list_change_and_superseded_pill(client, staff_user, site, indoor):
 
     listing = client.get(reverse("proforma_list"))
     assert listing.status_code == 200
-    assert b"Change" in listing.content
+    assert b'data-i18n="open"' in listing.content
+    assert reverse("proforma_detail", args=[proforma.pk]).encode() in listing.content
+    assert LIST_CHANGE_BUTTON not in listing.content
+    assert reverse("proforma_change").encode() not in listing.content
+    assert Proforma.objects.filter(replaces_id=proforma.pk).count() == 0
+
+    page = client.get(reverse("proforma_detail", args=[proforma.pk]))
+    assert page.status_code == 200
+    assert b"View quote" in page.content
+    assert b"Download PDF" in page.content
+    assert b'data-i18n="change"' in page.content
+    assert b'data-confirm-i18n="confirmChange"' in page.content
+    assert b'id="outcome-confirm"' in page.content
+    assert Proforma.objects.filter(replaces_id=proforma.pk).count() == 0
+
+
+@pytest.mark.integration
+def test_work_page_change_supersedes(client, staff_user, site, indoor):
+    proforma = create_draft(site, staff_user)
+    add_line(proforma, indoor, staff_user)
+    issue_proforma(proforma, staff_user)
+    client.force_login(staff_user)
 
     response = client.post(
         reverse("proforma_change"),
@@ -107,6 +133,7 @@ def test_list_change_and_superseded_pill(client, staff_user, site, indoor):
 
     listing = client.get(reverse("proforma_list"))
     assert b"status-pill--superseded" in listing.content
+    assert b'data-i18n="open"' not in listing.content
 
 
 @pytest.mark.integration
@@ -123,7 +150,8 @@ def test_list_edit_for_draft_and_no_change_when_accepted(
     listing = client.get(reverse("proforma_list"))
     assert listing.status_code == 200
     assert b"Edit" in listing.content
-    assert b'<button type="submit" class="btn-link" data-i18n="change">Change</button>' not in listing.content
+    assert LIST_CHANGE_BUTTON not in listing.content
+    assert b'data-i18n="open"' not in listing.content
     assert b"Clear accepted" in listing.content
     assert b"outcome-icon--accept" not in listing.content
     assert b"outcome-icon--reject" not in listing.content

@@ -67,7 +67,7 @@
             <form method="post" action="{% url 'proforma_change' %}" class="inline-form">
                 {% csrf_token %}
                 <input type="hidden" name="id" value="{{ proforma.pk }}">
-                <button type="submit" class="btn primary" data-i18n="change">Change</button>
+                <button type="submit" class="btn primary" data-i18n="change" data-confirm-i18n="confirmChange">Change</button>
             </form>
         </div>
     </div>
@@ -156,5 +156,8 @@
 {% else %}
 {% include "includes/drawer.html" with drawer_title="Line" drawer_form_template="proformas/includes/line_form.html" %}
 {% endif %}
+{% endif %}
+{% if can_change %}
+{% include "proformas/includes/outcome_confirm.html" %}
 {% endif %}
 {% endblock %}

@@ -47,11 +47,13 @@ def test_post_unaccept_on_issued_detail(client, staff_user, issued):
     assert b"Mark rejected" not in page.content
 
 
-def test_list_shows_change_and_outcome_buttons(client, staff_user, issued):
+def test_list_shows_open_and_outcome_buttons(client, staff_user, issued):
     client.force_login(staff_user)
     listing = client.get(reverse("proforma_list"))
     assert listing.status_code == 200
-    assert b"Change" in listing.content
+    assert b'data-i18n="open"' in listing.content
+    assert b'<button type="submit" class="btn-link" data-i18n="change">Change</button>' not in listing.content
+    assert reverse("proforma_change").encode() not in listing.content
     assert b"outcome-icon--accept" in listing.content
     assert b"outcome-icon--reject" in listing.content
     assert b'title="Mark accepted"' in listing.content
@@ -74,6 +76,7 @@ def test_list_post_mark_accepted(client, staff_user, issued):
 
     listing = client.get(reverse("proforma_list"))
     assert b"Clear accepted" in listing.content
+    assert b'data-i18n="open"' not in listing.content
     assert b"Change" not in listing.content
     assert b"outcome-icon--accept" not in listing.content
     assert b"outcome-icon--reject" not in listing.content
@@ -91,7 +94,7 @@ def test_list_post_clear_accepted(client, staff_user, issued):
     assert issued.accepted_at is None
 
     listing = client.get(reverse("proforma_list"))
-    assert b"Change" in listing.content
+    assert b'data-i18n="open"' in listing.content
     assert b"outcome-icon--accept" in listing.content
     assert b"Clear accepted" not in listing.content
 
@@ -104,3 +107,6 @@ def test_issued_detail_hides_outcome_buttons(client, staff_user, issued):
     assert b"Mark rejected" not in page.content
     assert b'data-confirm-i18n="confirmMarkAccepted"' not in page.content
     assert b'data-confirm-i18n="confirmMarkRejected"' not in page.content
+    assert b'data-confirm-i18n="confirmChange"' in page.content
+    assert b"View quote" in page.content
+    assert b"Download PDF" in page.content
