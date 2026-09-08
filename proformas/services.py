@@ -643,6 +643,7 @@ def delete_item(item, user):
     require_delete_permission(user)
     if ProformaLine.objects.filter(item=item).exists():
         raise ValidationError("Cannot delete an item that is used on a proforma line.")
+    Power.objects.filter(default_indoor=item).update(default_indoor=None)
     for match in ItemMatch.objects.filter(Q(outdoor=item) | Q(indoor=item)):
         match.soft_delete(user)
     item.soft_delete(user)
@@ -836,7 +837,6 @@ def save_item(item, user):
         item.max_indoor_ports = None
     else:
         item.sub_family = None
-        item.max_volume_m3 = None
     validate_item_kind_fields(
         kind=item.kind,
         sub_family=item.sub_family,
@@ -908,10 +908,100 @@ def save_vat_rate(vat_rate, user):
     return save_audited(vat_rate, user)
 
 
+def validate_power_volume_band(power, *, exclude_id=None):
+    from_m3 = power.volume_from_m3
+    to_m3 = power.volume_to_m3
+    if from_m3 is None and to_m3 is None:
+        return
+    if from_m3 is None or to_m3 is None:
+        raise ValidationError(
+            "Set both volume from and volume to, or leave both blank."
+        )
+    from_m3 = Decimal(str(from_m3))
+    to_m3 = Decimal(str(to_m3))
+    if from_m3 < 0:
+        raise ValidationError("Volume from cannot be negative.")
+    if to_m3 < from_m3:
+        raise ValidationError("Volume to must be at least volume from.")
+    others = Power.objects.filter(
+        volume_from_m3__isnull=False,
+        volume_to_m3__isnull=False,
+    )
+    pk = exclude_id if exclude_id is not None else power.pk
+    if pk:
+        others = others.exclude(pk=pk)
+    for other in others:
+        if from_m3 <= other.volume_to_m3 and other.volume_from_m3 <= to_m3:
+            raise ValidationError(
+                f"Volume band overlaps {other} "
+                f"({other.volume_from_m3}–{other.volume_to_m3} m³)."
+            )
+
+
+def validate_power_default_indoor(power):
+    indoor = power.default_indoor
+    if indoor is None:
+        return
+    if indoor.kind != Item.Kind.INDOOR:
+        raise ValidationError("Default indoor must be an indoor unit.")
+    if power.pk:
+        if indoor.power_id != power.pk:
+            raise ValidationError("Default indoor must use this power rating.")
+    elif indoor.power.power != power.power or indoor.power.unit != power.unit:
+        raise ValidationError("Default indoor must use this power rating.")
+
+
+def volume_value(volume_m3):
+    try:
+        value = Decimal(str(volume_m3))
+    except (InvalidOperation, TypeError, ValueError) as exc:
+        raise ValidationError("Enter a room volume in cubic metres.") from exc
+    if value < 0:
+        raise ValidationError("Room volume cannot be negative.")
+    return value
+
+
+def power_for_volume(volume_m3):
+    volume = volume_value(volume_m3)
+    matches = list(
+        Power.objects.filter(
+            volume_from_m3__isnull=False,
+            volume_to_m3__isnull=False,
+            volume_from_m3__lte=volume,
+            volume_to_m3__gte=volume,
+        )
+    )
+    if not matches:
+        raise ValidationError(
+            "No power rating covers this room volume. "
+            "Add a power band or use Add split."
+        )
+    if len(matches) > 1:
+        raise ValidationError(
+            "More than one power rating covers this room volume."
+        )
+    return matches[0]
+
+
+def add_default_split(proforma, volume_m3, user):
+    require_draft(proforma)
+    power = power_for_volume(volume_m3)
+    indoor = power.default_indoor
+    if indoor is None or indoor.deleted_at:
+        raise ValidationError(
+            f"Power {power} has no default indoor unit. Set one on the Powers page."
+        )
+    if indoor.kind != Item.Kind.INDOOR:
+        raise ValidationError("The default for this power must be an indoor unit.")
+    return add_line(proforma, indoor, user, quantity=1)
+
+
 def save_power(power, user):
     power.unit = validate_power_uniqueness(
         power.power, power.unit, exclude_id=power.pk
     )
+    validate_power_volume_band(power, exclude_id=power.pk)
+    validate_power_default_indoor(power)
     return save_audited(power, user)
 
 

@@ -200,6 +200,13 @@ DEMO_CLIENTS = (
 )
 
 
+VOLUME_BANDS = {
+    9000: (Decimal("0"), Decimal("20")),
+    12000: (Decimal("21"), Decimal("35")),
+    18000: (Decimal("36"), Decimal("50")),
+}
+
+
 def _live_get_or_create(model, defaults=None, **lookup):
     obj = model.objects.filter(**lookup).first()
     if obj:
@@ -224,11 +231,40 @@ def _outdoor_code(brand_name, ports, power_amount):
 def _seed_powers():
     by_amount = {}
     for amount in BTUS:
-        row, _ = _live_get_or_create(
-            Power, power=amount, unit="BTU"
+        vol_from, vol_to = VOLUME_BANDS[amount]
+        row, created = _live_get_or_create(
+            Power,
+            defaults={
+                "volume_from_m3": vol_from,
+                "volume_to_m3": vol_to,
+            },
+            power=amount,
+            unit="BTU",
         )
+        if not created and (
+            row.volume_from_m3 != vol_from or row.volume_to_m3 != vol_to
+        ):
+            row.volume_from_m3 = vol_from
+            row.volume_to_m3 = vol_to
+            row.save(update_fields=["volume_from_m3", "volume_to_m3"])
         by_amount[amount] = row
     return by_amount
+
+
+def _seed_power_defaults(powers_by_amount):
+    for amount in BTUS:
+        power = powers_by_amount[amount]
+        indoor = Item.objects.filter(
+            brand__name="Daikin",
+            sub_family__name="Perfera",
+            kind=Item.Kind.INDOOR,
+            power=power,
+        ).first()
+        if indoor is None:
+            continue
+        if power.default_indoor_id != indoor.pk:
+            power.default_indoor = indoor
+            power.save(update_fields=["default_indoor"])
 
 
 def _seed_indoor_items(brand, design_line, prices, vat_rate, powers_by_amount):
@@ -242,8 +278,6 @@ def _seed_indoor_items(brand, design_line, prices, vat_rate, powers_by_amount):
             "power": power,
             "max_indoor_ports": None,
         }
-        if amount == 9000:
-            indoor_defaults["max_volume_m3"] = Decimal("20")
         item, _ = _live_get_or_create(
             Item,
             defaults=indoor_defaults,
@@ -372,6 +406,8 @@ def seed_catalog():
     for indoor in all_indoors:
         outdoor = split_outdoors[indoor.brand.name][indoor.power.power]
         _seed_match(outdoor, indoor, is_default=True)
+
+    _seed_power_defaults(powers_by_amount)
 
     multi, _ = _live_get_or_create(
         Item,

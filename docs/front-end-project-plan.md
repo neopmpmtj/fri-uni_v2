@@ -125,8 +125,8 @@ Only place to set language. Daily cards + Setup cards as above. Implementation: 
 Daily catalog. Light: identity only, **no sales price field**.
 
 - Toolbar: search, filter by family / manufacturer, **New item**.
-- `.grid`: code, family, design line (indoor only), manufacturer, kind, ports (outdoor), power, max m³, VAT, actions. Price may show read-only; it is not edited here.
-- Drawer: family (hidden when only one live family), design line (indoor only; filtered by family), manufacturer, internal code, kind, **power**, max volume m³ (indoor), **max indoor ports** (outdoor), VAT, default checkbox. Indoor may pick a default split outdoor; outdoor may pick compatible indoors.
+- `.grid`: code, family, design line (indoor only), manufacturer, kind, ports (outdoor), power, VAT, actions. Price may show read-only; it is not edited here.
+- Drawer: family (hidden when only one live family), design line (indoor only; filtered by family), manufacturer, internal code, kind, **power**, **max indoor ports** (outdoor), VAT, default checkbox. Indoor may pick a default split outdoor; outdoor may pick compatible indoors. Room volume is not on the item.
 - If the chosen design line has a manufacturer, that field is filled and **visible but inactive**. Outdoor items have no design line.
 - Soft-delete in the drawer (admin only).
 
@@ -138,7 +138,7 @@ Same list+drawer chrome. Opened from dashboard setup cards only.
 - **Sub-families:** family, name, optional manufacturer, default; filter by family. Empty manufacturer = shared range.
 - **Manufacturers:** name, default. Row opens that brand’s **sales pricelist** (items + sales price). Edit price in a drawer with a **reason**. This is our sales price, not a supplier cost.
 - **VAT rates:** code, label, percent (stored as 0–1), default. Soft-delete admin only.
-- **Powers:** power, unit. Soft-delete admin only if unused.
+- **Powers:** power, unit, volume from / to (m³), default indoor. Soft-delete admin only if unused.
 - **Parameters:** known keys only; edit `value`. No New / Delete.
 - **Tubing lengths:** length, price (reason required on price change). Soft-delete admin only.
 
@@ -174,7 +174,7 @@ Analog of a warehouse **console**, not a Django form wizard.
 
 - Header **on the page** (not in a drawer): upfront discount %, extra labour, observations; live totals including stored extra-tubing metres when non-zero; **Issue** / **Change** when allowed.
 - Lines: `.grid` grouped by system (outdoor heading, indoor rows under it; item snapshot or live catalog name while draft, qty, tubing, line total).
-- **Add split / Add multi / Add indoor = drawer.** Family hidden while only one live family. **Split:** manufacturer → design line → indoor (matched ports=1 outdoor auto-added). **Multi:** manufacturer → outdoor (`ports≥2`). **Add indoor** on an outdoor row: design line → indoor from `item_matches`. Quantity; extra tubing on indoor lines only; tubing length only when extra tubing is checked (shortest catalog length pre-selected). If the design line has a manufacturer, that control is filled and inactive.
+- **Add split / Add default / Add multi / Add indoor = drawer.** Family hidden while only one live family. **Split:** manufacturer → design line → indoor (matched ports=1 outdoor auto-added). **Default:** room volume m³ only; inserts the power-band default indoor + matched split outdoor (qty 1, no extra tubing). **Multi:** manufacturer → outdoor (`ports≥2`). **Add indoor** on an outdoor row: design line → indoor from `item_matches`. Quantity; extra tubing on indoor lines only; tubing length only when extra tubing is checked (shortest catalog length pre-selected). If the design line has a manufacturer, that control is filled and inactive.
 - **Draft:** editable; **Override checks** checkbox next to Save / Issue (persisted; skips multi occupancy rules); optional “Revision of PF-…” when `replaces` is set.
 - **Issued:** read-only; **Change** (copy to new draft) when not accepted, not rejected, and not superseded; **View quote** / **Download PDF**. Accept / reject / clear live on the **list** (thumbs up/down), not on this page.
 - **Issued superseded:** read-only; link to replacement draft; no Change.
@@ -227,3 +227,4 @@ Document-like page for the client-facing quote (snapshots, line table, totals, o
 - [x] Front-end: Families / Sub-families / Manufacturers setup pages + pricelist (completed 2026-09-06)
 - [x] Front-end: line drawer Family → Sub-family → Manufacturer → Item with defaults (completed 2026-09-06)
 - [x] Front-end: VAT on Items + Setup cards for VAT rates, Parameters, Tubing (completed 2026-09-06)
+- [x] Front-end: Add default drawer + Powers volume band / default indoor (completed 2026-09-08)

@@ -27,7 +27,9 @@ from .services import (
     validate_item_identity,
     validate_item_kind_fields,
     validate_phone_number,
+    validate_power_default_indoor,
     validate_power_uniqueness,
+    validate_power_volume_band,
     validate_tax_number,
     validate_vat_code,
 )
@@ -258,6 +260,12 @@ class ProformaHeaderForm(forms.Form):
     override_checks = forms.BooleanField(required=False)
 
 
+class DefaultSplitForm(forms.Form):
+    volume_m3 = forms.DecimalField(
+        min_value=0, max_digits=8, decimal_places=2, label="Room volume m3"
+    )
+
+
 class DataDefaultSelect(forms.Select):
     def create_option(self, name, value, label, selected, index, subindex=None, attrs=None):
         option = super().create_option(
@@ -473,7 +481,6 @@ class ItemForm(forms.ModelForm):
             "kind",
             "power",
             "max_indoor_ports",
-            "max_volume_m3",
             "is_default",
         )
         widgets = {"sub_family": DataDefaultSelect, "vat_rate": DataDefaultSelect}
@@ -490,7 +497,6 @@ class ItemForm(forms.ModelForm):
         self.fields["power"].queryset = Power.objects.order_by("power", "unit")
         self.fields["power"].label_from_instance = lambda obj: str(obj)
         self.fields["vat_rate"].queryset = VatRate.objects.order_by("rate")
-        self.fields["max_volume_m3"].required = False
         self.fields["max_indoor_ports"].required = False
         self.fields["default_outdoor"].queryset = Item.objects.filter(
             kind=Item.Kind.OUTDOOR, max_indoor_ports=1
@@ -528,7 +534,6 @@ class ItemForm(forms.ModelForm):
         sub_family = cleaned.get("sub_family")
         if kind == Item.Kind.OUTDOOR:
             cleaned["sub_family"] = None
-            cleaned["max_volume_m3"] = None
             if not cleaned.get("brand"):
                 self.add_error("brand", "This field is required.")
                 return cleaned
@@ -596,7 +601,28 @@ class VatRateForm(forms.ModelForm):
 class PowerForm(forms.ModelForm):
     class Meta:
         model = Power
-        fields = ("power", "unit")
+        fields = (
+            "power",
+            "unit",
+            "volume_from_m3",
+            "volume_to_m3",
+            "default_indoor",
+        )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["volume_from_m3"].required = False
+        self.fields["volume_to_m3"].required = False
+        self.fields["default_indoor"].required = False
+        indoors = Item.objects.filter(kind=Item.Kind.INDOOR).select_related("power")
+        if self.instance.pk:
+            indoors = indoors.filter(power=self.instance)
+        else:
+            indoors = indoors.none()
+        self.fields["default_indoor"].queryset = indoors.order_by("internal_code")
+        self.fields["default_indoor"].label_from_instance = (
+            lambda obj: f"{obj.internal_code} — {obj.power}"
+        )
 
     def clean(self):
         cleaned = super().clean()
@@ -606,6 +632,16 @@ class PowerForm(forms.ModelForm):
             cleaned["unit"] = validate_power_uniqueness(
                 power, unit, exclude_id=self.instance.pk
             )
+        self.instance.power = power
+        self.instance.unit = cleaned.get("unit") or self.instance.unit
+        self.instance.volume_from_m3 = cleaned.get("volume_from_m3")
+        self.instance.volume_to_m3 = cleaned.get("volume_to_m3")
+        self.instance.default_indoor = cleaned.get("default_indoor")
+        try:
+            validate_power_volume_band(self.instance, exclude_id=self.instance.pk)
+            validate_power_default_indoor(self.instance)
+        except ValidationError as exc:
+            self.add_error(None, exc)
         return cleaned
 
 

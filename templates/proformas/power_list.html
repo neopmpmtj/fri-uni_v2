@@ -23,6 +23,9 @@
             <tr>
                 <th data-i18n="power">Power</th>
                 <th data-i18n="unit">Unit</th>
+                <th data-i18n="volumeFromM3">Volume from m3</th>
+                <th data-i18n="volumeToM3">Volume to m3</th>
+                <th data-i18n="defaultIndoor">Default indoor</th>
                 <th data-i18n="actions">Actions</th>
             </tr>
         </thead>
@@ -31,10 +34,13 @@
             <tr>
                 <td>{{ row.power }}</td>
                 <td>{{ row.unit }}</td>
+                <td>{% if row.volume_from_m3 is not None %}{{ row.volume_from_m3 }}{% else %}—{% endif %}</td>
+                <td>{% if row.volume_to_m3 is not None %}{{ row.volume_to_m3 }}{% else %}—{% endif %}</td>
+                <td>{% if row.default_indoor %}{{ row.default_indoor.internal_code }}{% else %}—{% endif %}</td>
                 <td><a href="{% url 'power_list' %}?id={{ row.pk }}" data-i18n="edit">Edit</a></td>
             </tr>
             {% empty %}
-            <tr><td colspan="3" data-i18n="empty">No rows yet.</td></tr>
+            <tr><td colspan="6" data-i18n="empty">No rows yet.</td></tr>
             {% endfor %}
         </tbody>
     </table>

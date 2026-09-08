@@ -12,6 +12,7 @@
 {% block actions %}
 {% if is_draft %}
 <a class="btn primary" href="{% url 'proforma_detail' proforma.pk %}?new_line=1" data-i18n="addSplit">Add split</a>
+<a class="btn ghost" href="{% url 'proforma_detail' proforma.pk %}?new_line=default" data-i18n="addDefault">Add default</a>
 <a class="btn ghost" href="{% url 'proforma_detail' proforma.pk %}?new_line=multi" data-i18n="addMulti">Add multi</a>
 {% endif %}
 {% endblock %}
@@ -139,6 +140,10 @@
 </div>
 
 {% if is_draft %}
+{% if default_mode %}
+{% include "includes/drawer.html" with drawer_title="Add default" drawer_form_template="proformas/includes/default_form.html" %}
+{% else %}
 {% include "includes/drawer.html" with drawer_title="Line" drawer_form_template="proformas/includes/line_form.html" %}
+{% endif %}
 {% endif %}
 {% endblock %}

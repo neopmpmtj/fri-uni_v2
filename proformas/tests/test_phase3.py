@@ -120,7 +120,7 @@ def test_new_item_rejects_duplicate_identity(client, staff_user, indoor):
 
 @pytest.mark.integration
 @pytest.mark.django_db
-def test_new_item_allows_same_identity_with_different_max_volume(client, staff_user, indoor):
+def test_edit_item_same_identity_succeeds(client, staff_user, indoor):
     client.force_login(staff_user)
     response = client.post(
         reverse("item_list"),
@@ -131,14 +131,14 @@ def test_new_item_allows_same_identity_with_different_max_volume(client, staff_u
             "power": indoor.power_id,
             "internal_code": "MIT-SPL-I-9",
             "kind": Item.Kind.INDOOR,
-            "max_volume_m3": "25",
+            "is_default": "on",
             "action": "save",
             "id": indoor.pk,
         },
     )
     assert response.status_code == 302
     indoor.refresh_from_db()
-    assert indoor.max_volume_m3 == Decimal("25")
+    assert indoor.is_default
 
 
 @pytest.mark.integration
@@ -278,8 +278,11 @@ def test_seed_catalog_twice_does_not_duplicate():
         power__unit="BTU",
     )
     assert indoor_9.internal_code == "DAI-SEN-I-9"
-    assert indoor_9.max_volume_m3 == Decimal("20")
     assert indoor_9.vat_rate.code == "VAT23"
+    power_9 = Power.objects.get(power=9000, unit="BTU")
+    assert power_9.volume_from_m3 == Decimal("0")
+    assert power_9.volume_to_m3 == Decimal("20")
+    assert power_9.default_indoor.internal_code == "DAI-PRF-I-9"
     split_outdoor = Item.objects.get(internal_code="DAI-O1-9")
     assert split_outdoor.kind == Item.Kind.OUTDOOR
     assert split_outdoor.sub_family_id is None
