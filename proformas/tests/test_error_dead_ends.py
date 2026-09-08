@@ -37,6 +37,22 @@ def test_pdf_build_error_redirects(client, staff_user, site, indoor):
 
 @pytest.mark.integration
 @pytest.mark.django_db
+def test_pdf_render_error_redirects(client, staff_user, site, indoor):
+    proforma = create_draft(site, staff_user)
+    add_line(proforma, indoor, staff_user, quantity=1)
+    issue_proforma(proforma, staff_user)
+    client.force_login(staff_user)
+    with patch(
+        "proformas.pdf.HTML.write_pdf",
+        side_effect=RuntimeError("WeasyPrint failed"),
+    ):
+        response = client.get(reverse("proforma_pdf", args=[proforma.pk]))
+    assert response.status_code == 302
+    assert response.url == reverse("proforma_detail", args=[proforma.pk])
+
+
+@pytest.mark.integration
+@pytest.mark.django_db
 def test_create_draft_validation_error_reopens_drawer(client, staff_user, site):
     Parameter.objects.update_or_create(
         key="default_upfront_discount_percent",

@@ -9,6 +9,7 @@ from proformas.services import (
     add_default_split,
     create_draft,
     power_for_volume,
+    save_item,
     save_power,
 )
 
@@ -85,6 +86,36 @@ def test_add_default_split_with_extra_tubing(staff_user, site, indoor, tubing):
     proforma.refresh_from_db()
     assert proforma.extra_tubing_metres == tubing.length
     assert proforma.tubing_total == tubing.price
+
+
+@pytest.mark.unit
+@pytest.mark.django_db
+def test_save_item_clears_stale_default_indoor_when_power_changes(staff_user, indoor):
+    power_9 = indoor.power
+    _set_band(power_9, 0, 20, indoor)
+    power_12, _ = Power.objects.get_or_create(power=12000, unit="BTU")
+    _set_band(power_12, 21, 35)
+
+    indoor.power = power_12
+    save_item(indoor, staff_user)
+
+    power_9.refresh_from_db()
+    assert power_9.default_indoor_id is None
+
+
+@pytest.mark.unit
+@pytest.mark.django_db
+def test_add_default_split_rejects_stale_default_indoor(staff_user, site, indoor):
+    power_9 = indoor.power
+    _set_band(power_9, 0, 20, indoor)
+    power_12, _ = Power.objects.get_or_create(power=12000, unit="BTU")
+    _set_band(power_12, 21, 35)
+    indoor.power = power_12
+    indoor.save(update_fields=["power"])
+
+    proforma = create_draft(site, staff_user)
+    with pytest.raises(ValidationError, match="must use this power rating"):
+        add_default_split(proforma, Decimal("10"), staff_user)
 
 
 @pytest.mark.unit

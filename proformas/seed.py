@@ -1,6 +1,7 @@
 from decimal import Decimal
 
 from django.core.exceptions import ValidationError
+from django.core.management.base import CommandError
 
 from accounts.models import User
 from proformas.models import (
@@ -464,28 +465,48 @@ def _ensure_user(email, password, *, role, is_superuser=False, reset_password=Fa
     return User.objects.create_user(email=email, password=password, role=role)
 
 
+def _require_catalog_row(qs, *, label):
+    try:
+        return qs.get()
+    except Item.DoesNotExist:
+        raise CommandError(
+            f"seed_demo: missing catalog row ({label}). Run migrate and seed_catalog first."
+        ) from None
+
+
 def _catalog_indoor(brand, design_line, power_amount):
-    return Item.objects.get(
-        brand__name=brand,
-        sub_family__name=design_line,
-        kind=Item.Kind.INDOOR,
-        power__power=power_amount,
-        power__unit="BTU",
+    return _require_catalog_row(
+        Item.objects.filter(
+            brand__name=brand,
+            sub_family__name=design_line,
+            kind=Item.Kind.INDOOR,
+            power__power=power_amount,
+            power__unit="BTU",
+        ),
+        label=f"indoor {brand} / {design_line} / {power_amount} BTU",
     )
 
 
 def _catalog_outdoor(brand, ports, power_amount):
-    return Item.objects.get(
-        brand__name=brand,
-        kind=Item.Kind.OUTDOOR,
-        max_indoor_ports=ports,
-        power__power=power_amount,
-        power__unit="BTU",
+    return _require_catalog_row(
+        Item.objects.filter(
+            brand__name=brand,
+            kind=Item.Kind.OUTDOOR,
+            max_indoor_ports=ports,
+            power__power=power_amount,
+            power__unit="BTU",
+        ),
+        label=f"outdoor {brand} / {ports}-port / {power_amount} BTU",
     )
 
 
 def _tubing(length):
-    return TubingLength.objects.get(length=Decimal(length))
+    try:
+        return TubingLength.objects.get(length=Decimal(length))
+    except TubingLength.DoesNotExist:
+        raise CommandError(
+            f"seed_demo: missing tubing length {length} m. Run migrate first."
+        ) from None
 
 
 def _seed_clients_and_sites(actor):

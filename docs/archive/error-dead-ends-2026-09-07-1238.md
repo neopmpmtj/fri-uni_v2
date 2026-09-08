@@ -5,7 +5,9 @@
 > **Method:** Independent read of `proformas/views.py`, `proformas/services.py`, `proformas/pdf.py`, `static/js/*.js`, templates, `seed.py`; Bugbot on uncommitted changes ([Bugbot](bf683718-8181-4a00-b359-733bc01cac74)).  
 > **Baseline:** [`code-review-2026-09-07-0750.md`](code-review-2026-09-07-0750.md) (client billing slice). **126 tests** green per [`handoff.md`](../handoff.md).
 
-This is an in-progress audit (living under `docs/reviews/`). It does not change product scope. **No application code was changed** in this review.
+> **Concluded:** 2026-09-08 — remediations implemented or deferred to [`project-plan.md`](../project-plan.md). Archived to [`docs/archive/`](../archive/).
+
+This audit does not change product scope.
 
 ---
 
@@ -207,3 +209,35 @@ rm -f db.sqlite3
 ```
 
 Hard-refresh issued proforma detail and exercise Mark accepted / Mark rejected confirm (No must cancel, Yes must apply).
+
+---
+
+## Remediation status (2026-09-08)
+
+| ID | Status | Notes |
+|----|--------|-------|
+| **H1** | **Partial** | `pdf.py` maps render failures → `ValidationError`; `proforma_pdf` redirects with message; activity log failures swallowed. **Deferred:** application-level PDF timeout / async job (project-plan backlog). |
+| **H2** | **Fixed** | `proforma_list` catches `ValidationError`; `ParameterForm` validates discount. Test: `test_create_draft_validation_error_reopens_drawer`. |
+| **M1** | **Fixed** | Hardened `proforma-detail.js` (try/catch, hidden `action`, `requestSubmit` fallback). **Deferred:** browser E2E (project-plan backlog). |
+| **M2** | **Fixed** | `issue_proforma` uses `transaction.atomic()` + `select_for_update()`. |
+| **M3** | **Fixed** | Catalog delete guards on item, family, sub-family, brand. Test: `test_delete_item_used_on_line_rejected`. |
+| **M4** | **Fixed** | `select_for_update()` on issue/accept/reject/change; `proforma_change` catches `IntegrityError`. **Deferred:** concurrency stress tests (project-plan backlog). |
+| **M5** | **Fixed** | Migration `0016_map_cancelled_to_issued`. |
+| **L1** | **Fixed** | Activity log after PDF wrapped in `try/except`. |
+| **L2** | **Fixed** | `next_proforma_number` parses numeric suffix; `test_number_after_9999`. |
+| **L3** | **Fixed** | Issue header flash message. Test: `test_invalid_issue_header_shows_message`. |
+| **L4** | **Fixed** | `PermissionDenied` → flash in `_drawer_list`. Test: `test_staff_delete_client_shows_message_not_403`. |
+| **L5** | **Fixed** | `_drawer_list` catches `IntegrityError`; `create_draft` retries numbering. |
+| **L6** | **Fixed** | `seed_demo` catalog helpers raise `CommandError` with clear message. Test: `test_catalog_indoor_missing_raises_command_error`. |
+
+Regression coverage: [`proformas/tests/test_error_dead_ends.py`](../../proformas/tests/test_error_dead_ends.py).
+
+---
+
+## Deferred to project-plan (2026-09-08)
+
+- PDF application-level timeout or async job (H1 remainder)
+- Confirm dialog browser E2E or manual regression checklist (M1)
+- Concurrency stress tests for Change / accept / reject (M4)
+
+See **Backlog (post-MVP slices)** in [`project-plan.md`](../project-plan.md).

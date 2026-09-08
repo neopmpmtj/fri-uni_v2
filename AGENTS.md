@@ -85,9 +85,9 @@ Mark complete during session-handoff: `- [x] ... (completed YYYY-MM-DD)`
 
 ## Session
 
-**Done:** Add default inserts a split pair from room m³; optional extra tubing checkbox + length in that drawer (same as split). **163 tests** green.
+**Done:** Code review 2026-09-08 concluded; M1 stale `default_indoor` fixed; error-dead-ends audit archived; PDF/seed hardening; heating expansion in backlog. **167 tests** green.
 
-**Not done:** Production deploy; letterhead; real prices; capacity math; VAT on quote math/PDF; contact fields on issued-quote snapshots/PDF.
+**Not done:** Production deploy; letterhead; real prices; capacity math; VAT on quote math/PDF; contact fields on issued-quote snapshots/PDF; heating expansion; PDF timeout/E2E/concurrency backlog items.
 
 **Next:** VAT on quote math / PDF. Read [`docs/handoff.md`](docs/handoff.md).
 

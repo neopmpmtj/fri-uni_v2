@@ -391,6 +391,18 @@ Do not implement in these phases:
 - [x] Override checks: skip multi indoor-count at add indoor and Issue (completed 2026-09-07)
 - [x] Add default: volume band + default indoor on powers; drop item max_volume_m3 (completed 2026-09-08)
 - [x] Add default: optional extra tubing checkbox + length dropdown (completed 2026-09-08)
+- [x] Stale `powers.default_indoor` consistency when item power changes (completed 2026-09-08)
+- [x] Code review 2026-09-08 conclusions documented; M1 remediated (completed 2026-09-08)
+- [x] Error-dead-ends audit concluded; PDF broad exception + seed_demo `CommandError` (completed 2026-09-08)
+- [ ] PDF generation: application-level timeout or async job for WeasyPrint hang risk (gunicorn timeout is mitigation only) (added 2026-09-08; from error-dead-ends H1)
+- [ ] Confirm dialog: browser E2E or documented manual regression checklist for outcome confirm Yes/No (added 2026-09-08; from error-dead-ends M1 — code hardened, no automated UI test)
+- [ ] Concurrency: stress tests for concurrent Change / accept / reject (added 2026-09-08; from error-dead-ends M4 — row locks in place)
+- [ ] Heating expansion: decide product shapes — split heat pump vs standalone furnace/boiler vs furnace + radiator circuit(s) (wood/gas units circulating water/oil to one or more radiators) (added 2026-09-08)
+- [ ] Heating expansion: extend `data-points.md` for chosen shapes before schema/issue-rule changes (added 2026-09-08)
+- [ ] Heating catalog slice: split heat pumps — new family, reuse indoor/outdoor + `item_matches` (added 2026-09-08)
+- [ ] Heating catalog slice: standalone furnace/boiler — no outdoor parent; relax issue validation for standalone kind (added 2026-09-08)
+- [ ] Heating catalog slice: furnace + radiator circuit — heat-source line + optional child radiator lines (design TBD in data-points) (added 2026-09-08)
+- [ ] Heating quoting: family-specific quick-add / sizing (not AC m³→BTU Add default) (added 2026-09-08)
 
 ## Tests policy
 

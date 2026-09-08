@@ -1,6 +1,6 @@
 # Session handoff
 
-> **Last updated:** 2026-09-08 08:04 WEST (Europe/Lisbon)  
+> **Last updated:** 2026-09-08 08:50 WEST (Europe/Lisbon)  
 > Replace with the current date and time whenever you edit this file.
 
 ## Project
@@ -25,16 +25,19 @@ Do not run `seed_demo` in production. Fresh local DB: `rm -f db.sqlite3`, then `
 
 **AC systems:** **Split** = 1 outdoor (`ports=1`) + 1 indoor (staff start from the indoor; default match auto-adds the outdoor). **Default** = type room m³ → `powers` band → that row’s default indoor + matched 1-port outdoor (qty 1). **Multi** = 1 outdoor (`ports≥2`) + 2+ indoors (staff start from the outdoor, then Add indoor). Extra tubing stays on indoor runs. Editing a 1-port outdoor line uses the outdoor drawer (not indoor/design-line). **Override checks** on the draft header skips multi indoor-count rules (add past ports; issue without 2..ports). Split stays exact-one indoor.
 
+**Reviews:** [`reviews/code-review-2026-09-08-0818.md`](reviews/code-review-2026-09-08-0818.md) (concluded). Error-dead-ends audit archived: [`archive/error-dead-ends-2026-09-07-1238.md`](archive/error-dead-ends-2026-09-07-1238.md).
+
 ## Done (this session)
 
-- **Add default:** draft work-page action; room m³ picks a `powers` band and inserts that row’s default indoor + matched 1-port outdoor (qty 1). Optional extra tubing checkbox + length (same as split). Migration `0021`. Dropped `items.max_volume_m3`. Seed: 0–20 / 21–35 / 36–50 m³; Daikin Perfera defaults.
-- **Tests:** **163 passing** (`pytest`)
+- **Code review 2026-09-08:** last five commits (Add default slice); M1 stale `default_indoor` fixed in `save_item` + `add_default_split`; review doc concluded.
+- **Error-dead-ends audit:** re-audited; H2–L5 fixed in code; H1 broad PDF exception + L6 `seed_demo` `CommandError`; review archived; open items in project-plan backlog.
+- **Heating expansion:** deferred to project-plan backlog (split HP, standalone, furnace + radiator circuit).
+- **Living docs:** handoff, project-plan, preliminary plan, DEPLOYMENT, AGENTS, README updated.
+- **Tests:** **167 passing** (`pytest`)
 
 ## Done (earlier)
 
-- Override checks on multi occupancy
-- Migration `0019` lookup seeds; pairing leftover cleanup; two-tables-vs-one docs; 1-port split outdoor edit/delete
-- AC pairing model; seed rewrite; migration `0018`; crash/freeze audit; rejected overlay; Phases 1–8; catalog slice; VAT; client/site identity; Change/supersede
+- Add default volume split + optional extra tubing; override checks; AC pairing; crash/freeze remediations; rejected overlay; Phases 1–8; catalog slice; VAT; client/site identity; Change/supersede
 
 ## Not done
 
@@ -46,6 +49,8 @@ Do not run `seed_demo` in production. Fresh local DB: `rm -f db.sqlite3`, then `
 - Proforma snapshot fields for site/client contact on issued PDFs
 - Email send / stored PDFs / Google OAuth / dark theme
 - Enable non-PT phone countries in UI (table seeded; PT only disabled selector)
+- Heating expansion (backlog in project-plan)
+- PDF application-level timeout; confirm-dialog E2E; concurrency stress tests (backlog)
 
 ## Next
 

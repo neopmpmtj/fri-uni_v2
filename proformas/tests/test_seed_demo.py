@@ -2,6 +2,7 @@ from decimal import Decimal
 
 import pytest
 from django.core.management import call_command
+from django.core.management.base import CommandError
 from django.urls import reverse
 
 from accounts.models import User
@@ -137,3 +138,14 @@ def test_demo_users_can_log_in(client):
     call_command("seed_demo")
     assert client.login(email=DEMO_MANAGER_EMAIL, password=DEMO_PASSWORD)
     assert client.login(email=DEMO_ADMIN_EMAIL, password=DEMO_PASSWORD)
+
+
+@pytest.mark.unit
+@pytest.mark.django_db
+def test_catalog_indoor_missing_raises_command_error():
+    from django.core.management.base import CommandError
+
+    from proformas.seed import _catalog_indoor
+
+    with pytest.raises(CommandError, match="seed_catalog"):
+        _catalog_indoor("Missing", "Line", 9000)

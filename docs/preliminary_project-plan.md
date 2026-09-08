@@ -576,3 +576,27 @@ None.
 ### Open questions still open
 
 None.
+
+## Update 2026-09-08 — Heating expansion (deferred)
+
+### What changed
+
+- Code review [`reviews/code-review-2026-09-08-0818.md`](reviews/code-review-2026-09-08-0818.md) assessed scalability beyond AC splits. Implementation deferred to [`project-plan.md`](project-plan.md) backlog.
+
+### Product shapes to decide (backlog)
+
+- **Split heat pump** — same outdoor/indoor + `item_matches` model as AC.
+- **Standalone furnace/boiler** — single unit on a quote line; no outdoor parent.
+- **Furnace + radiator circuit** — standalone heat source (wood, gas, etc.) circulating water or oil to **one or more radiators**; distinct from AC split pairs. May need parent/child lines on the quote (design TBD in `data-points.md`).
+
+### Apps added/removed
+
+None.
+
+### Decisions
+
+- No schema or issue-rule changes until shapes are chosen and `data-points.md` is updated.
+
+### Open questions still open
+
+Which heating shapes to ship first (split HP vs standalone vs radiator circuits)?

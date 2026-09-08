@@ -850,6 +850,12 @@ def save_item(item, user):
         max_indoor_ports=item.max_indoor_ports,
         exclude_item_id=item.pk,
     )
+    if item.pk and item.kind == Item.Kind.INDOOR:
+        previous_power_id = (
+            Item.objects.filter(pk=item.pk).values_list("power_id", flat=True).first()
+        )
+        if previous_power_id is not None and previous_power_id != item.power_id:
+            Power.objects.filter(default_indoor=item).update(default_indoor=None)
     return save_audited(item, user)
 
 
@@ -995,6 +1001,7 @@ def add_default_split(
         )
     if indoor.kind != Item.Kind.INDOOR:
         raise ValidationError("The default for this power must be an indoor unit.")
+    validate_power_default_indoor(power)
     return add_line(
         proforma,
         indoor,

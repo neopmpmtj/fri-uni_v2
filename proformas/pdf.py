@@ -23,5 +23,5 @@ def build_proforma_pdf(proforma, lang="en"):
     )
     try:
         return HTML(string=html).write_pdf()
-    except OSError as exc:
+    except Exception as exc:
         raise ValidationError("Could not generate PDF.") from exc
