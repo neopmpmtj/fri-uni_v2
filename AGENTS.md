@@ -85,9 +85,9 @@ Mark complete during session-handoff: `- [x] ... (completed YYYY-MM-DD)`
 
 ## Session
 
-**Done:** Override checks (`0020`) on draft header next to Save/Issue; skips multi occupancy at add indoor and Issue; split still strict. **154 tests** green.
+**Done:** Add default (`0021`): volume bands + default indoor on powers; draft **Add default** inserts a split pair from room m³. Dropped item `max_volume_m3`. **160 tests** green.
 
-**Not done:** Production deploy; letterhead; real prices; volume auto-pick; capacity math; VAT on quote math/PDF; contact fields on issued-quote snapshots/PDF.
+**Not done:** Production deploy; letterhead; real prices; capacity math; VAT on quote math/PDF; contact fields on issued-quote snapshots/PDF.
 
 **Next:** VAT on quote math / PDF. Read [`docs/handoff.md`](docs/handoff.md).
 

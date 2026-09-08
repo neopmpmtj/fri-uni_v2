@@ -227,4 +227,4 @@ Document-like page for the client-facing quote (snapshots, line table, totals, o
 - [x] Front-end: Families / Sub-families / Manufacturers setup pages + pricelist (completed 2026-09-06)
 - [x] Front-end: line drawer Family → Sub-family → Manufacturer → Item with defaults (completed 2026-09-06)
 - [x] Front-end: VAT on Items + Setup cards for VAT rates, Parameters, Tubing (completed 2026-09-06)
-- [ ] Front-end: Add default drawer + Powers volume band / default indoor (added 2026-09-08)
+- [x] Front-end: Add default drawer + Powers volume band / default indoor (completed 2026-09-08)

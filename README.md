@@ -2,11 +2,11 @@
 
 Internal HVAC back office for creating **proforma invoices** — client quotes for equipment installation and cost, including an upfront-payment discount. Not an official finance document.
 
-> **Last updated:** 2026-09-07 19:20 WEST
+> **Last updated:** 2026-09-08 07:20 WEST
 
 ## What it does
 
-Staff sign in with email, pick language on the dashboard, then quote from a catalog (family → indoor design line → indoor item; outdoor units by manufacturer, power, and port count; pairing via item matches): client and site, split or multi-split systems, optional extra tubing per indoor run, extra labour and observations. **Issue** freezes a snapshot; staff can view the quote on screen and download a PDF. Clients do not log in.
+Staff sign in with email, pick language on the dashboard, then quote from a catalog (family → indoor design line → indoor item; outdoor units by manufacturer, power, and port count; pairing via item matches): client and site, split, volume **Add default**, or multi-split systems, optional extra tubing per indoor run, extra labour and observations. **Issue** freezes a snapshot; staff can view the quote on screen and download a PDF. Clients do not log in.
 
 A management command (`create_proforma`) can create a proforma in one shot (same database, mandatory `--user`).
 
