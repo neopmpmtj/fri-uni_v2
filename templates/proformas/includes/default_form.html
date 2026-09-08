@@ -6,6 +6,14 @@
         {{ default_form.volume_m3 }}
         {{ default_form.volume_m3.errors }}
     </label>
+    <label>
+        <span>{{ default_form.extra_tubing }} <span data-i18n="extraTubing">Extra tubing</span></span>
+    </label>
+    <label class="tubing-length-field">
+        <span data-i18n="tubingLength">Tubing length</span>
+        {{ default_form.tubing_length }}
+        {{ default_form.tubing_length.errors }}
+    </label>
     <div class="drawer-actions">
         <button type="submit" name="action" value="add_default" class="btn primary" data-i18n="addDefault">Add default</button>
     </div>
