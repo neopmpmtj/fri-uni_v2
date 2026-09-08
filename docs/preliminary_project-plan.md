@@ -623,3 +623,23 @@ None.
 ### Open questions still open
 
 None.
+
+## Update 2026-09-08 — list Open vs work-page Change
+
+### What changed
+
+- List **Actions** for an eligible issued quote is **Open** (GET to the issued work page), not **Change**. Thumbs-up / thumbs-down stay on the list.
+- **Change** (supersede: new draft, `replaces` / `superseded_by`) is only on the issued work page, with a Yes/No confirm. **View quote** and **Download PDF** stay there.
+
+### Apps added/removed
+
+None.
+
+### Decisions
+
+- **Open** is the list counterpart of **Edit**. **Change** stays the irreversible supersede verb.
+- No schema or service change.
+
+### Open questions still open
+
+None.

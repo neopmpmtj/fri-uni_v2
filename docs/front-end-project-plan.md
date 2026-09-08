@@ -165,7 +165,7 @@ First-class page. **Do not** nest sites inside the client drawer the way warehou
 
 - Toolbar: search/filter by status (`draft` / `issued`), **New draft** (must pick a site).
 - `.grid`: number (link to work page), site/client, status pills (+ Accepted / Rejected / Superseded when set), grand total, updated, **Actions**.
-- **Actions:** `draft` → **Edit**. `issued` not accepted not rejected not superseded → **Change** (left) plus thumbs-up (green) / thumbs-down (red) icons for accept/reject (hover label, Yes/No confirm). `issued` + accepted → **Clear accepted** only. `issued` + rejected → **Clear rejected** only. Superseded → no action.
+- **Actions:** `draft` → **Edit**. `issued` not accepted not rejected not superseded → **Open** (GET to the issued work page) plus thumbs-up (green) / thumbs-down (red) icons for accept/reject (hover label, Yes/No confirm). Do **not** supersede from the list. `issued` + accepted → **Clear accepted** only. `issued` + rejected → **Clear rejected** only. Superseded → no action.
 - Implementation: Phase 5 + supersede slice.
 
 ### Proforma work page
@@ -176,7 +176,7 @@ Analog of a warehouse **console**, not a Django form wizard.
 - Lines: `.grid` grouped by system (outdoor heading, indoor rows under it; item snapshot or live catalog name while draft, qty, tubing, line total).
 - **Add split / Add default / Add multi / Add indoor = drawer.** Family hidden while only one live family. **Split:** manufacturer → design line → indoor (matched ports=1 outdoor auto-added). **Default:** room volume m³; optional extra tubing (length shown when checked, shortest catalog length pre-selected); inserts the power-band default indoor + matched split outdoor (qty 1). **Multi:** manufacturer → outdoor (`ports≥2`). **Add indoor** on an outdoor row: design line → indoor from `item_matches`. Quantity; extra tubing on indoor lines only; tubing length only when extra tubing is checked (shortest catalog length pre-selected). If the design line has a manufacturer, that control is filled and inactive.
 - **Draft:** editable; **Override checks** checkbox next to Save / Issue (persisted; skips multi occupancy rules); optional “Revision of PF-…” when `replaces` is set.
-- **Issued:** read-only; **Change** (copy to new draft) when not accepted, not rejected, and not superseded; **View quote** / **Download PDF**. Accept / reject / clear live on the **list** (thumbs up/down), not on this page.
+- **Issued:** read-only; **View quote** / **Download PDF**; **Change** (copy to new draft, Yes/No confirm) only on this page when not accepted, not rejected, and not superseded. Accept / reject / clear live on the **list** (thumbs up/down), not on this page.
 - **Issued superseded:** read-only; link to replacement draft; no Change.
 - Implementation: Phases 5–7 + supersede slice.
 

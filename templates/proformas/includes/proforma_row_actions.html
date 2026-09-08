@@ -3,11 +3,7 @@
         {% if proforma.can_edit %}
         <a href="{% url 'proforma_detail' proforma.pk %}" data-i18n="edit">Edit</a>
         {% elif proforma.can_change %}
-        <form method="post" action="{% url 'proforma_change' %}" class="inline-form">
-            {% csrf_token %}
-            <input type="hidden" name="id" value="{{ proforma.pk }}">
-            <button type="submit" class="btn-link" data-i18n="change">Change</button>
-        </form>
+        <a href="{% url 'proforma_detail' proforma.pk %}" data-i18n="open">Open</a>
         {% endif %}
     </div>
     <div class="row-actions__end">
