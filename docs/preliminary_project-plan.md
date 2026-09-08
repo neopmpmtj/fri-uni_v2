@@ -600,3 +600,26 @@ None.
 ### Open questions still open
 
 Which heating shapes to ship first (split HP vs standalone vs radiator circuits)?
+
+## Update 2026-09-08 — financial and commercial discounts
+
+### What changed
+
+- Renamed the company default and per-draft **upfront** discount to **financial** (`default_financial_discount_percent` / `financial_discount_percent`). Still one typed percent, overridable on the draft.
+- Added a **commercial** discount with the same shape: parameter `default_commercial_discount_percent` (seed `0`) and per-draft `commercial_discount_percent`.
+- Sequential math on **equipment only**: commercial first, then financial on the remainder. Tubing and extra labour are not discounted.
+- Dropped combined `discount_amount`. Frozen money is `commercial_discount_amount` and `financial_discount_amount`. Quote/PDF hides the commercial line when the amount is zero; financial is always shown.
+- CLI: `--discount-percent` remains the financial percent; `--commercial-discount-percent` added. **Change** copies both percents.
+
+### Apps added/removed
+
+None.
+
+### Decisions
+
+- Rename stored keys and columns (greenfield). Do not keep `upfront` as a leftover name.
+- Commercial default is `0`.
+
+### Open questions still open
+
+None.

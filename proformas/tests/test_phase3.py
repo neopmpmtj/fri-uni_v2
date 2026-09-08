@@ -41,7 +41,8 @@ def admin_user(db):
 @pytest.mark.django_db
 def test_migrate_seeds_parameters_family_brands_and_tubing():
     assert Parameter.objects.get(key="currency").value == "EUR"
-    assert Parameter.objects.get(key="default_upfront_discount_percent").value == "10"
+    assert Parameter.objects.get(key="default_financial_discount_percent").value == "10"
+    assert Parameter.objects.get(key="default_commercial_discount_percent").value == "0"
     assert Parameter.objects.get(key="tubing_length_unit").value == "m"
     ac = Family.objects.get(name=FAMILY_AC)
     assert ac.is_default

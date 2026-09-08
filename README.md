@@ -1,8 +1,8 @@
 # fri-uni
 
-Internal HVAC back office for creating **proforma invoices** — client quotes for equipment installation and cost, including an upfront-payment discount. Not an official finance document.
+Internal HVAC back office for creating **proforma invoices** — client quotes for equipment installation and cost, including commercial and financial discounts. Not an official finance document.
 
-> **Last updated:** 2026-09-08 08:50 WEST
+> **Last updated:** 2026-09-08 10:10 WEST
 
 ## What it does
 

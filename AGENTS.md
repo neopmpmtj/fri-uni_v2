@@ -85,7 +85,7 @@ Mark complete during session-handoff: `- [x] ... (completed YYYY-MM-DD)`
 
 ## Session
 
-**Done:** Code review 2026-09-08 concluded; M1 stale `default_indoor` fixed; error-dead-ends audit archived; PDF/seed hardening; heating expansion in backlog. **167 tests** green.
+**Done:** Financial vs commercial discounts (rename upfront → financial; sequential math; migration `0022`). **170 tests** green.
 
 **Not done:** Production deploy; letterhead; real prices; capacity math; VAT on quote math/PDF; contact fields on issued-quote snapshots/PDF; heating expansion; PDF timeout/E2E/concurrency backlog items.
 

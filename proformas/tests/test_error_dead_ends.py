@@ -55,7 +55,7 @@ def test_pdf_render_error_redirects(client, staff_user, site, indoor):
 @pytest.mark.django_db
 def test_create_draft_validation_error_reopens_drawer(client, staff_user, site):
     Parameter.objects.update_or_create(
-        key="default_upfront_discount_percent",
+        key="default_financial_discount_percent",
         defaults={"value": "not-a-number"},
     )
     client.force_login(staff_user)
@@ -82,7 +82,8 @@ def test_invalid_issue_header_shows_message(client, staff_user, site, indoor):
         reverse("proforma_detail", args=[proforma.pk]),
         {
             "action": "issue",
-            "upfront_discount_percent": "150",
+            "commercial_discount_percent": "0",
+            "financial_discount_percent": "150",
             "extra_labour": "0",
             "observations": "",
         },
@@ -120,7 +121,7 @@ def test_parameter_form_rejects_invalid_default_discount():
     from proformas.forms import ParameterForm
 
     parameter, _ = Parameter.objects.get_or_create(
-        key="default_upfront_discount_percent",
+        key="default_financial_discount_percent",
         defaults={"value": "10"},
     )
     form = ParameterForm({"value": "150"}, instance=parameter)

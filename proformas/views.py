@@ -325,7 +325,8 @@ def proforma_detail(request, pk):
     is_draft = proforma.status == Proforma.Status.DRAFT
     header_form = ProformaHeaderForm(
         initial={
-            "upfront_discount_percent": proforma.upfront_discount_percent,
+            "commercial_discount_percent": proforma.commercial_discount_percent,
+            "financial_discount_percent": proforma.financial_discount_percent,
             "extra_labour": proforma.extra_labour,
             "observations": proforma.observations,
             "override_checks": proforma.override_checks,
@@ -354,8 +355,11 @@ def proforma_detail(request, pk):
                     services.update_draft(
                         proforma,
                         request.user,
-                        upfront_discount_percent=header_form.cleaned_data[
-                            "upfront_discount_percent"
+                        financial_discount_percent=header_form.cleaned_data[
+                            "financial_discount_percent"
+                        ],
+                        commercial_discount_percent=header_form.cleaned_data[
+                            "commercial_discount_percent"
                         ],
                         extra_labour=header_form.cleaned_data["extra_labour"],
                         observations=header_form.cleaned_data["observations"],
@@ -434,8 +438,11 @@ def proforma_detail(request, pk):
                     services.update_draft(
                         proforma,
                         request.user,
-                        upfront_discount_percent=header_form.cleaned_data[
-                            "upfront_discount_percent"
+                        financial_discount_percent=header_form.cleaned_data[
+                            "financial_discount_percent"
+                        ],
+                        commercial_discount_percent=header_form.cleaned_data[
+                            "commercial_discount_percent"
                         ],
                         extra_labour=header_form.cleaned_data["extra_labour"],
                         observations=header_form.cleaned_data["observations"],

@@ -77,8 +77,14 @@ def log_activity(
 
 KNOWN_PARAMETER_KEYS = (
     "currency",
-    "default_upfront_discount_percent",
+    "default_financial_discount_percent",
+    "default_commercial_discount_percent",
     "tubing_length_unit",
+)
+
+DISCOUNT_PARAMETER_KEYS = (
+    "default_financial_discount_percent",
+    "default_commercial_discount_percent",
 )
 
 _VALID_NIF_FIRST_DIGITS = set("1235689")
@@ -247,19 +253,27 @@ def recompute_draft_totals(proforma):
             metres += Decimal(line.quantity) * line.tubing_length.length
     equipment = money(equipment)
     tubing = money(tubing)
-    discount = money(equipment * proforma.upfront_discount_percent / Decimal("100"))
-    grand = money(equipment - discount + tubing + proforma.extra_labour)
+    commercial = money(
+        equipment * proforma.commercial_discount_percent / Decimal("100")
+    )
+    after_commercial = equipment - commercial
+    financial = money(
+        after_commercial * proforma.financial_discount_percent / Decimal("100")
+    )
+    grand = money(after_commercial - financial + tubing + proforma.extra_labour)
     proforma.equipment_subtotal = equipment
     proforma.tubing_total = tubing
     proforma.extra_tubing_metres = metres
-    proforma.discount_amount = discount
+    proforma.commercial_discount_amount = commercial
+    proforma.financial_discount_amount = financial
     proforma.grand_total = grand
     proforma.save(
         update_fields=[
             "equipment_subtotal",
             "tubing_total",
             "extra_tubing_metres",
-            "discount_amount",
+            "commercial_discount_amount",
+            "financial_discount_amount",
             "grand_total",
             "updated_at",
         ]
@@ -272,12 +286,18 @@ def create_draft(
     user,
     *,
     discount_percent=None,
+    commercial_discount_percent=None,
     extra_labour=0,
     observations="",
 ):
     if discount_percent is None:
-        discount_percent = get_parameter("default_upfront_discount_percent", "10")
-    discount = discount_percent_value(discount_percent)
+        discount_percent = get_parameter("default_financial_discount_percent", "10")
+    if commercial_discount_percent is None:
+        commercial_discount_percent = get_parameter(
+            "default_commercial_discount_percent", "0"
+        )
+    financial = discount_percent_value(discount_percent)
+    commercial = discount_percent_value(commercial_discount_percent)
     labour = labour_value(extra_labour or 0)
     last_error = None
     for _ in range(NUMBER_ALLOCATION_ATTEMPTS):
@@ -287,7 +307,8 @@ def create_draft(
                     site=site,
                     number=next_proforma_number(),
                     status=Proforma.Status.DRAFT,
-                    upfront_discount_percent=discount,
+                    financial_discount_percent=financial,
+                    commercial_discount_percent=commercial,
                     extra_labour=labour,
                     observations=observations or "",
                     created_by=user,
@@ -311,15 +332,20 @@ def update_draft(
     proforma,
     user,
     *,
-    upfront_discount_percent=None,
+    financial_discount_percent=None,
+    commercial_discount_percent=None,
     extra_labour=None,
     observations=None,
     override_checks=None,
 ):
     require_draft(proforma)
-    if upfront_discount_percent is not None:
-        proforma.upfront_discount_percent = discount_percent_value(
-            upfront_discount_percent
+    if financial_discount_percent is not None:
+        proforma.financial_discount_percent = discount_percent_value(
+            financial_discount_percent
+        )
+    if commercial_discount_percent is not None:
+        proforma.commercial_discount_percent = discount_percent_value(
+            commercial_discount_percent
         )
     if extra_labour is not None:
         proforma.extra_labour = labour_value(extra_labour)
@@ -1255,7 +1281,8 @@ def change_proforma(proforma, user):
         new = create_draft(
             proforma.site,
             user,
-            discount_percent=proforma.upfront_discount_percent,
+            discount_percent=proforma.financial_discount_percent,
+            commercial_discount_percent=proforma.commercial_discount_percent,
             extra_labour=proforma.extra_labour,
             observations=proforma.observations,
         )

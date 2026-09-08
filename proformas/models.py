@@ -510,7 +510,10 @@ class Proforma(AuditedModel):
         on_delete=models.SET_NULL,
         related_name="+",
     )
-    upfront_discount_percent = models.DecimalField(max_digits=5, decimal_places=2)
+    commercial_discount_percent = models.DecimalField(
+        max_digits=5, decimal_places=2, default=0
+    )
+    financial_discount_percent = models.DecimalField(max_digits=5, decimal_places=2)
     extra_labour = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     observations = models.TextField(blank=True)
     override_checks = models.BooleanField(default=False)
@@ -523,7 +526,10 @@ class Proforma(AuditedModel):
     extra_tubing_metres = models.DecimalField(
         max_digits=8, decimal_places=2, null=True, blank=True
     )
-    discount_amount = models.DecimalField(
+    commercial_discount_amount = models.DecimalField(
+        max_digits=12, decimal_places=2, null=True, blank=True
+    )
+    financial_discount_amount = models.DecimalField(
         max_digits=12, decimal_places=2, null=True, blank=True
     )
     grand_total = models.DecimalField(

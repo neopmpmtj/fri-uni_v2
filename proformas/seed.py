@@ -95,7 +95,8 @@ SUBFAMILY_CODE = {
 TUBING = (("3.00", "25.00"), ("5.00", "40.00"), ("10.00", "70.00"))
 PARAMETERS = (
     ("currency", "EUR"),
-    ("default_upfront_discount_percent", "10"),
+    ("default_financial_discount_percent", "10"),
+    ("default_commercial_discount_percent", "0"),
     ("tubing_length_unit", "m"),
 )
 VAT_RATES = (

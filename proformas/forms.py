@@ -19,6 +19,7 @@ from .models import (
     VatRate,
 )
 from .services import (
+    DISCOUNT_PARAMETER_KEYS,
     configure_nine_digit_form_field,
     discount_percent_value,
     normalize_postal_code,
@@ -252,7 +253,10 @@ class NewDraftForm(forms.Form):
 
 
 class ProformaHeaderForm(forms.Form):
-    upfront_discount_percent = forms.DecimalField(
+    commercial_discount_percent = forms.DecimalField(
+        max_digits=5, decimal_places=2, min_value=0, max_value=100
+    )
+    financial_discount_percent = forms.DecimalField(
         max_digits=5, decimal_places=2, min_value=0, max_value=100
     )
     extra_labour = forms.DecimalField(max_digits=12, decimal_places=2, min_value=0)
@@ -680,7 +684,7 @@ class ParameterForm(forms.ModelForm):
         if (
             value is not None
             and self.instance.pk
-            and self.instance.key == "default_upfront_discount_percent"
+            and self.instance.key in DISCOUNT_PARAMETER_KEYS
         ):
             try:
                 discount_percent_value(value)

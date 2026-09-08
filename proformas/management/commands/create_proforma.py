@@ -28,6 +28,7 @@ class Command(BaseCommand):
             help="item_id:qty or item_id:qty:tubing_length_id",
         )
         parser.add_argument("--discount-percent", default=None)
+        parser.add_argument("--commercial-discount-percent", default=None)
         parser.add_argument("--extra-labour", default=None)
         parser.add_argument("--observations", default="")
         parser.add_argument("--issue", action="store_true")
@@ -49,6 +50,10 @@ class Command(BaseCommand):
             if options["discount_percent"] is not None:
                 draft_kwargs["discount_percent"] = Decimal(
                     str(options["discount_percent"])
+                )
+            if options["commercial_discount_percent"] is not None:
+                draft_kwargs["commercial_discount_percent"] = Decimal(
+                    str(options["commercial_discount_percent"])
                 )
             if options["extra_labour"] is not None:
                 draft_kwargs["extra_labour"] = Decimal(str(options["extra_labour"]))

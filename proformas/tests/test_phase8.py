@@ -1,3 +1,4 @@
+from decimal import Decimal
 from io import StringIO
 
 import pytest
@@ -47,6 +48,29 @@ def test_cli_issue_freezes(staff_user, site, indoor):
     assert proforma.status == Proforma.Status.ISSUED
     assert proforma.grand_total is not None
     assert proforma.client_name == "Acme"
+
+
+def test_cli_discount_flags(staff_user, site, indoor):
+    out = StringIO()
+    call_command(
+        "create_proforma",
+        "--user",
+        staff_user.email,
+        "--site",
+        str(site.pk),
+        "--line",
+        f"{indoor.pk}:1",
+        "--discount-percent",
+        "10",
+        "--commercial-discount-percent",
+        "10",
+        stdout=out,
+    )
+    proforma = Proforma.objects.get(number=out.getvalue().strip())
+    assert proforma.financial_discount_percent == Decimal("10.00")
+    assert proforma.commercial_discount_percent == Decimal("10.00")
+    assert proforma.commercial_discount_amount == Decimal("105.00")
+    assert proforma.financial_discount_amount == Decimal("94.50")
 
 
 def test_cli_unknown_user_or_site_fails(staff_user, site, indoor):

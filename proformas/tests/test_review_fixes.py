@@ -31,6 +31,8 @@ def admin_user(db):
 def test_discount_over_100_rejected(staff_user, site):
     with pytest.raises(ValidationError):
         create_draft(site, staff_user, discount_percent=Decimal("150"))
+    with pytest.raises(ValidationError):
+        create_draft(site, staff_user, commercial_discount_percent=Decimal("150"))
 
 
 @pytest.mark.unit
@@ -60,7 +62,7 @@ def test_number_after_9999(staff_user, site):
         site=site,
         number=f"PF-{year}-9999",
         status=Proforma.Status.DRAFT,
-        upfront_discount_percent=Decimal("10.00"),
+        financial_discount_percent=Decimal("10.00"),
         extra_labour=Decimal("0.00"),
         created_by=staff_user,
         updated_by=staff_user,
@@ -97,7 +99,8 @@ def test_issue_applies_unsaved_header(client, staff_user, site, indoor):
         reverse("proforma_detail", args=[proforma.pk]),
         {
             "action": "issue",
-            "upfront_discount_percent": "5",
+            "commercial_discount_percent": "0",
+            "financial_discount_percent": "5",
             "extra_labour": "20.00",
             "observations": "locked in",
         },
@@ -105,10 +108,10 @@ def test_issue_applies_unsaved_header(client, staff_user, site, indoor):
     assert response.status_code == 302
     proforma.refresh_from_db()
     assert proforma.status == Proforma.Status.ISSUED
-    assert proforma.upfront_discount_percent == Decimal("5.00")
+    assert proforma.financial_discount_percent == Decimal("5.00")
     assert proforma.extra_labour == Decimal("20.00")
     assert proforma.observations == "locked in"
-    assert proforma.discount_amount == Decimal("52.50")
+    assert proforma.financial_discount_amount == Decimal("52.50")
 
 
 @pytest.mark.integration
@@ -144,7 +147,8 @@ def test_wrong_status_issue_shows_message(client, staff_user, site, indoor):
         reverse("proforma_detail", args=[proforma.pk]),
         {
             "action": "issue",
-            "upfront_discount_percent": "10",
+            "commercial_discount_percent": "0",
+            "financial_discount_percent": "10",
             "extra_labour": "0",
         },
         follow=True,

@@ -48,7 +48,10 @@
         {% if proforma.extra_tubing_metres %}
         <div><dt>{{ labels.extraTubingMetres }}</dt><dd>{{ proforma.extra_tubing_metres }} m</dd></div>
         {% endif %}
-        <div><dt>{{ labels.discount }}</dt><dd>{{ proforma.discount_amount }}</dd></div>
+        {% if proforma.commercial_discount_amount %}
+        <div><dt>{{ labels.commercialDiscount }}</dt><dd>{{ proforma.commercial_discount_amount }}</dd></div>
+        {% endif %}
+        <div><dt>{{ labels.financialDiscount }}</dt><dd>{{ proforma.financial_discount_amount }}</dd></div>
         <div><dt>{{ labels.extraLabour }}</dt><dd>{{ proforma.extra_labour }}</dd></div>
         <div><dt>{{ labels.grandTotal }}</dt><dd>{{ proforma.grand_total }}</dd></div>
     </dl>

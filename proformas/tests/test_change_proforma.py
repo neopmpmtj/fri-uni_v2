@@ -20,7 +20,12 @@ pytestmark = pytest.mark.django_db
 
 @pytest.fixture
 def issued(staff_user, site, indoor):
-    proforma = create_draft(site, staff_user)
+    proforma = create_draft(
+        site,
+        staff_user,
+        discount_percent=10,
+        commercial_discount_percent=5,
+    )
     add_line(proforma, indoor, staff_user, quantity=2)
     return issue_proforma(proforma, staff_user)
 
@@ -38,6 +43,8 @@ def test_change_creates_draft_with_links(issued, staff_user):
     assert issued.status == Proforma.Status.ISSUED
     assert issued.grand_total == frozen_total
     assert issued.lines.first().unit_price == frozen_unit
+    assert new.commercial_discount_percent == issued.commercial_discount_percent
+    assert new.financial_discount_percent == issued.financial_discount_percent
     assert new.lines.count() == issued.lines.count()
     assert ActivityLog.objects.filter(action="change_proforma").exists()
 

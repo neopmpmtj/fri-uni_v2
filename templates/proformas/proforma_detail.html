@@ -30,9 +30,14 @@
     {% csrf_token %}
     {{ header_form.non_field_errors }}
     <label>
-        <span data-i18n="discountPercent">Upfront discount %</span>
-        {{ header_form.upfront_discount_percent }}
-        {{ header_form.upfront_discount_percent.errors }}
+        <span data-i18n="commercialDiscountPercent">Commercial discount %</span>
+        {{ header_form.commercial_discount_percent }}
+        {{ header_form.commercial_discount_percent.errors }}
+    </label>
+    <label>
+        <span data-i18n="financialDiscountPercent">Financial discount %</span>
+        {{ header_form.financial_discount_percent }}
+        {{ header_form.financial_discount_percent.errors }}
     </label>
     <label>
         <span data-i18n="extraLabour">Extra labour</span>
@@ -89,9 +94,15 @@
         <dd>{{ proforma.extra_tubing_metres }} m</dd>
     </div>
     {% endif %}
+    {% if proforma.commercial_discount_amount %}
     <div>
-        <dt data-i18n="discountAmount">Discount</dt>
-        <dd>{{ proforma.discount_amount }}</dd>
+        <dt data-i18n="commercialDiscountAmount">Commercial discount</dt>
+        <dd>{{ proforma.commercial_discount_amount }}</dd>
+    </div>
+    {% endif %}
+    <div>
+        <dt data-i18n="financialDiscountAmount">Financial discount</dt>
+        <dd>{{ proforma.financial_discount_amount }}</dd>
     </div>
     <div>
         <dt data-i18n="grandTotal">Grand total</dt>

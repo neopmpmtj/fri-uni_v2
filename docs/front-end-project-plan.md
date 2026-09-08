@@ -172,7 +172,7 @@ First-class page. **Do not** nest sites inside the client drawer the way warehou
 
 Analog of a warehouse **console**, not a Django form wizard.
 
-- Header **on the page** (not in a drawer): upfront discount %, extra labour, observations; live totals including stored extra-tubing metres when non-zero; **Issue** / **Change** when allowed.
+- Header **on the page** (not in a drawer): commercial discount %, financial discount %, extra labour, observations; live totals including stored extra-tubing metres when non-zero and commercial discount amount when non-zero; **Issue** / **Change** when allowed.
 - Lines: `.grid` grouped by system (outdoor heading, indoor rows under it; item snapshot or live catalog name while draft, qty, tubing, line total).
 - **Add split / Add default / Add multi / Add indoor = drawer.** Family hidden while only one live family. **Split:** manufacturer → design line → indoor (matched ports=1 outdoor auto-added). **Default:** room volume m³; optional extra tubing (length shown when checked, shortest catalog length pre-selected); inserts the power-band default indoor + matched split outdoor (qty 1). **Multi:** manufacturer → outdoor (`ports≥2`). **Add indoor** on an outdoor row: design line → indoor from `item_matches`. Quantity; extra tubing on indoor lines only; tubing length only when extra tubing is checked (shortest catalog length pre-selected). If the design line has a manufacturer, that control is filled and inactive.
 - **Draft:** editable; **Override checks** checkbox next to Save / Issue (persisted; skips multi occupancy rules); optional “Revision of PF-…” when `replaces` is set.

@@ -1,11 +1,11 @@
 # Session handoff
 
-> **Last updated:** 2026-09-08 08:50 WEST (Europe/Lisbon)  
+> **Last updated:** 2026-09-08 10:10 WEST (Europe/Lisbon)  
 > Replace with the current date and time whenever you edit this file.
 
 ## Project
 
-Internal back office for one HVAC company (slice of “universe”). Staff create **proforma invoices**: client-facing quotes showing equipment to be installed and what it will cost, including an upfront-payment discount. Not an official finance document.
+Internal back office for one HVAC company (slice of “universe”). Staff create **proforma invoices**: client-facing quotes showing equipment to be installed and what it will cost, including commercial and financial discounts. Not an official finance document.
 
 **MVP:** email+password login → dashboard (pick EN/PT once) → clients/sites (list + drawer) → draft proforma (work page + line drawer) → issue/lock snapshots → on-screen quote + PDF download. Catalog is staff pages (Items daily; Families / Design lines / Manufacturers / VAT / Parameters / Tubing setup). CLI: `create_proforma`.
 
@@ -17,7 +17,7 @@ Staff app is **`proformas`** (`accounts` is User/login only). Playbook: [`docs/p
 
 Catalog: **family → indoor design line (`sub_families`) → indoor item**; outdoor items have **no** design line (brand + power + `max_indoor_ports` + code). Pairing is **`item_matches`**. Quote lines group under the outdoor (`parent_line`). Sales price is edited only on the manufacturer pricelist (reason required). Django admin is users and audit only.
 
-Do not run `seed_demo` in production. Fresh local DB: `rm -f db.sqlite3`, then `migrate` and `seed_demo`. Restart `runserver` after schema changes. After pulling this tree, run **`migrate`** (migration `0021`).
+Do not run `seed_demo` in production. Fresh local DB: `rm -f db.sqlite3`, then `migrate` and `seed_demo`. Restart `runserver` after schema changes. After pulling this tree, run **`migrate`** (migration `0022`).
 
 **Two tables vs one:** `clients` / `sites` are different nouns (quote → site). Indoor/outdoor stay one `items` table + `item_matches`. See [`data-points.md`](data-points.md) and preliminary-plan update 2026-09-07.
 
@@ -29,15 +29,12 @@ Do not run `seed_demo` in production. Fresh local DB: `rm -f db.sqlite3`, then `
 
 ## Done (this session)
 
-- **Code review 2026-09-08:** last five commits (Add default slice); M1 stale `default_indoor` fixed in `save_item` + `add_default_split`; review doc concluded.
-- **Error-dead-ends audit:** re-audited; H2–L5 fixed in code; H1 broad PDF exception + L6 `seed_demo` `CommandError`; review archived; open items in project-plan backlog.
-- **Heating expansion:** deferred to project-plan backlog (split HP, standalone, furnace + radiator circuit).
-- **Living docs:** handoff, project-plan, preliminary plan, DEPLOYMENT, AGENTS, README updated.
-- **Tests:** **167 passing** (`pytest`)
+- **Financial vs commercial discounts:** renamed `default_upfront_discount_percent` / `upfront_discount_percent` / `discount_amount` to financial names; added commercial percent + amount; sequential math (commercial first, then financial on remainder, equipment only); quote/PDF hides commercial when amount is 0; CLI `--discount-percent` is financial, `--commercial-discount-percent` added; Change copies both. Migration `0022`.
+- **Tests:** **170 passing** (`pytest`)
 
 ## Done (earlier)
 
-- Add default volume split + optional extra tubing; override checks; AC pairing; crash/freeze remediations; rejected overlay; Phases 1–8; catalog slice; VAT; client/site identity; Change/supersede
+- Code review 2026-09-08; M1 stale `default_indoor`; error-dead-ends audit; PDF/seed hardening; Add default volume split + extra tubing; override checks; AC pairing; Phases 1–8; catalog slice; VAT; client/site identity; Change/supersede
 
 ## Not done
 

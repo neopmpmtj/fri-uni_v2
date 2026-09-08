@@ -394,6 +394,7 @@ Do not implement in these phases:
 - [x] Stale `powers.default_indoor` consistency when item power changes (completed 2026-09-08)
 - [x] Code review 2026-09-08 conclusions documented; M1 remediated (completed 2026-09-08)
 - [x] Error-dead-ends audit concluded; PDF broad exception + seed_demo `CommandError` (completed 2026-09-08)
+- [x] Financial vs commercial discounts: rename upfront → financial; add commercial; sequential math on equipment; split frozen amounts (completed 2026-09-08)
 - [ ] PDF generation: application-level timeout or async job for WeasyPrint hang risk (gunicorn timeout is mitigation only) (added 2026-09-08; from error-dead-ends H1)
 - [ ] Confirm dialog: browser E2E or documented manual regression checklist for outcome confirm Yes/No (added 2026-09-08; from error-dead-ends M1 — code hardened, no automated UI test)
 - [ ] Concurrency: stress tests for concurrent Change / accept / reject (added 2026-09-08; from error-dead-ends M4 — row locks in place)

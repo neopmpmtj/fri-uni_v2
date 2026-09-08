@@ -63,7 +63,10 @@ def site(db):
 @pytest.fixture
 def indoor(db):
     Parameter.objects.get_or_create(
-        key="default_upfront_discount_percent", defaults={"value": "10"}
+        key="default_financial_discount_percent", defaults={"value": "10"}
+    )
+    Parameter.objects.get_or_create(
+        key="default_commercial_discount_percent", defaults={"value": "0"}
     )
     family, _ = Family.objects.get_or_create(
         name="Air conditioners", defaults={"is_default": True}

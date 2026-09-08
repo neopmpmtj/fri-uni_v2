@@ -33,7 +33,8 @@ Mandatory flags:
 
 Optional flags:
 
-- `--discount-percent`
+- `--discount-percent` — financial discount percent (parameter default if omitted)
+- `--commercial-discount-percent` — commercial discount percent (parameter default if omitted)
 - `--extra-labour`
 - `--observations`
 - `--issue` — issue immediately after create
@@ -81,13 +82,14 @@ Same validation and snapshot rules as the web app. Intended for LLM agent invoca
   - `value` — text, required
 - Known keys:
   - `currency` — company currency (e.g. EUR); all money fields use this
-  - `default_upfront_discount_percent` — number as text; default for new drafts; changing it does not rewrite locked proformas
+  - `default_financial_discount_percent` — number as text; default financial % for new drafts; changing it does not rewrite locked proformas
+  - `default_commercial_discount_percent` — number as text; default commercial % for new drafts; changing it does not rewrite locked proformas
   - `tubing_length_unit` — `m` (metres); documents the unit for `tubing_lengths.length`
 - Uniqueness: live `key`
 - Reason-required: no
 - Extra history table: no
 - Extra activity table: no
-- Notes: staff may edit `value` on known keys only. No create or delete of parameter rows from the setup page. Initial rows: `currency=EUR`, `default_upfront_discount_percent=10`, `tubing_length_unit=m`.
+- Notes: staff may edit `value` on known keys only. No create or delete of parameter rows from the setup page. Initial rows: `currency=EUR`, `default_financial_discount_percent=10`, `default_commercial_discount_percent=0`, `tubing_length_unit=m`.
 
 ### countries
 
@@ -299,14 +301,16 @@ Same validation and snapshot rules as the web app. Intended for LLM agent invoca
   - `rejected_at` — datetime, optional; null = not rejected yet. Set only on `issued` rows when staff mark that the client declined (or the deal died). Cleared when staff unmark. Mutually exclusive with `accepted_at`. Not a money field; freeze rules unchanged. Blocks **Change**, same as accepted.
   - `superseded_by` — fk → `proformas`, optional; set on an **issued** row when staff **Change** it — points to the new draft that replaces it. Null = still the active issued version for that revision chain.
   - `replaces` — fk → `proformas`, optional; set on a **draft** created by **Change** — points back to the source issued row. Null on normal new drafts.
-  - `upfront_discount_percent` — number, required (copied from parameters on create; overridable while draft)
+  - `commercial_discount_percent` — number, required, default 0 (copied from parameters on create; overridable while draft)
+  - `financial_discount_percent` — number, required (copied from parameters on create; overridable while draft)
   - `extra_labour` — money, required, default 0
   - `observations` — text, optional
   - `override_checks` — boolean, required, default false. Staff checkbox on the draft header next to Save / Issue. When true, skip multi outdoor indoor-count checks: add indoor past `max_indoor_ports`, and issue without requiring 2..`max_indoor_ports` children. Split (`ports=1`) still requires exactly one indoor. Compatibility (`item_matches`) and parent-line rules stay on. Not a money field; freeze rules unchanged; copied on **Change**.
   - `equipment_subtotal` — money, optional until issue, then required frozen
   - `tubing_total` — money, optional until issue, then required frozen
   - `extra_tubing_metres` — number (metres), optional until issue, then required frozen; sum over extra-tubing lines of `quantity × length`. Not money. `tubing_total` stays the money sum.
-  - `discount_amount` — money, optional until issue, then required frozen (equipment only)
+  - `commercial_discount_amount` — money, optional until issue, then required frozen (equipment only; applied first)
+  - `financial_discount_amount` — money, optional until issue, then required frozen (equipment remainder after commercial)
   - `grand_total` — money, optional until issue, then required frozen
   - Snapshot fields (filled at issue; read by PDF):
     - `client_name` — text
@@ -330,7 +334,7 @@ Same validation and snapshot rules as the web app. Intended for LLM agent invoca
 - Extra activity table: no
 - Notes:
   - Only `draft` is editable. Explicit **issue** snapshots totals, client/site display fields, and locks. PDF is for issued documents. Draft preview PDF (if added later) must not lock.
-  - Upfront discount applies to **equipment line totals only**, not tubing, not extra labour.
+  - Commercial then financial discounts apply to **equipment line totals only**, not tubing, not extra labour. Commercial is applied first; financial is applied to the remainder. Quote/PDF shows the commercial money line only when the amount is not zero; financial is always shown.
   - `extra_labour` is on the header, not on lines.
   - Soft-delete still hides mistakes from live lists.
   - `accepted_at` and `rejected_at` are separate from `status`: an issued proforma stays `issued` with or without a mark. Later reporting can use `accepted_at IS NOT NULL` / `rejected_at IS NOT NULL` and group by those timestamps. Exclude superseded issued rows from active stats (`superseded_by` is null).
@@ -339,8 +343,9 @@ Same validation and snapshot rules as the web app. Intended for LLM agent invoca
     - `equipment_subtotal` = sum over lines of `quantity × unit_price`
     - `tubing_total` = sum over lines of `quantity × tubing_amount`
     - `extra_tubing_metres` = sum over extra-tubing lines of `quantity × length`
-    - `discount_amount` = `equipment_subtotal × upfront_discount_percent / 100`
-    - `grand_total` = `equipment_subtotal - discount_amount + tubing_total + extra_labour`
+    - `commercial_discount_amount` = `equipment_subtotal × commercial_discount_percent / 100`
+    - `financial_discount_amount` = `(equipment_subtotal - commercial_discount_amount) × financial_discount_percent / 100`
+    - `grand_total` = `equipment_subtotal - commercial_discount_amount - financial_discount_amount + tubing_total + extra_labour`
 
 ### proforma_lines
 

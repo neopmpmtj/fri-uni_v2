@@ -58,6 +58,8 @@ def test_portuguese_quote_label(client, staff_user, site, indoor):
         },
     )
     assert "Totais" in html
+    assert "Desconto pagamento antecipado" in html
+    assert "Desconto comercial" not in html
     assert 'lang="pt-PT"' in html
 
 
@@ -86,4 +88,24 @@ def test_quote_shows_stored_extra_tubing_metres(client, staff_user, site, indoor
     client.force_login(staff_user)
     body = client.get(reverse("proforma_quote", args=[issued.pk])).content.decode()
     assert "10.00 m" in body
+
+
+def test_quote_hides_zero_commercial_and_shows_nonzero(
+    client, staff_user, site, indoor
+):
+    hidden = create_draft(site, staff_user, discount_percent=10)
+    add_line(hidden, indoor, staff_user, quantity=1)
+    hidden = issue_proforma(hidden, staff_user)
+    shown = create_draft(
+        site, staff_user, discount_percent=10, commercial_discount_percent=10
+    )
+    add_line(shown, indoor, staff_user, quantity=1)
+    shown = issue_proforma(shown, staff_user)
+    client.force_login(staff_user)
+    hidden_body = client.get(reverse("proforma_quote", args=[hidden.pk])).content.decode()
+    shown_body = client.get(reverse("proforma_quote", args=[shown.pk])).content.decode()
+    assert "Financial discount" in hidden_body
+    assert "Commercial discount" not in hidden_body
+    assert "Commercial discount" in shown_body
+    assert "105.00" in shown_body
 

@@ -46,9 +46,35 @@ def test_discount_ignores_tubing_and_labour(staff_user, site, indoor, tubing):
         tubing_length=tubing,
     )
     proforma.refresh_from_db()
-    # equipment 500 indoor + 550 outdoor, discount 105, tubing 40, labour 50 -> 1035
-    assert proforma.discount_amount == Decimal("105.00")
+    # equipment 500 indoor + 550 outdoor, financial 105, tubing 40, labour 50 -> 1035
+    assert proforma.commercial_discount_amount == Decimal("0.00")
+    assert proforma.financial_discount_amount == Decimal("105.00")
     assert proforma.grand_total == Decimal("1035.00")
+
+
+def test_commercial_then_financial_on_equipment_remainder(
+    staff_user, site, indoor, tubing
+):
+    proforma = create_draft(
+        site,
+        staff_user,
+        discount_percent=10,
+        commercial_discount_percent=10,
+        extra_labour=Decimal("50.00"),
+    )
+    add_line(
+        proforma,
+        indoor,
+        staff_user,
+        quantity=1,
+        extra_tubing=True,
+        tubing_length=tubing,
+    )
+    proforma.refresh_from_db()
+    # equipment 1050; commercial 105; financial 10% of 945 = 94.50; tubing 40; labour 50
+    assert proforma.commercial_discount_amount == Decimal("105.00")
+    assert proforma.financial_discount_amount == Decimal("94.50")
+    assert proforma.grand_total == Decimal("940.50")
 
 
 def test_extra_tubing_metres_sums_quantity_times_length(staff_user, site, indoor, tubing):
