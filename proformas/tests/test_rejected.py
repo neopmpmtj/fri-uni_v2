@@ -27,8 +27,9 @@ def test_post_mark_rejected_on_issued_detail(client, staff_user, issued):
     page = client.get(reverse("proforma_detail", args=[issued.pk]))
     assert page.status_code == 200
     assert b"status-pill--rejected" in page.content
-    assert b"Clear rejected" in page.content
+    assert b"Clear rejected" not in page.content
     assert b"Mark accepted" not in page.content
+    assert b"Mark rejected" not in page.content
 
 
 def test_post_unreject_on_issued_detail(client, staff_user, issued):
@@ -44,8 +45,8 @@ def test_post_unreject_on_issued_detail(client, staff_user, issued):
 
     page = client.get(reverse("proforma_detail", args=[issued.pk]))
     assert page.status_code == 200
-    assert b"Mark rejected" in page.content
-    assert b"Mark accepted" in page.content
+    assert b"Mark rejected" not in page.content
+    assert b"Mark accepted" not in page.content
 
 
 def test_list_post_mark_rejected(client, staff_user, issued):

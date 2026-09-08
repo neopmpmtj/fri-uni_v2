@@ -515,3 +515,21 @@ None.
 ### Open questions still open
 
 None.
+
+## Update 2026-09-07 — issued work page has no accept/reject buttons
+
+### What changed
+
+- Issued proforma work page no longer shows **Mark accepted** / **Mark rejected** (or Clear). Outcomes stay on the proforma **list** (thumbs up/down). Work page keeps **Change**, **View quote**, and **Download PDF**.
+
+### Apps added/removed
+
+None.
+
+### Decisions
+
+- Staff mark accepted/rejected from the list after the client decides, not at Issue time on the work page.
+
+### Open questions still open
+
+None.

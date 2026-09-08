@@ -26,7 +26,8 @@ def test_post_mark_accepted_on_issued_detail(client, staff_user, issued):
     page = client.get(reverse("proforma_detail", args=[issued.pk]))
     assert page.status_code == 200
     assert b"status-pill--accepted" in page.content
-    assert b"Clear accepted" in page.content
+    assert b"Mark accepted" not in page.content
+    assert b"Clear accepted" not in page.content
 
 
 def test_post_unaccept_on_issued_detail(client, staff_user, issued):
@@ -42,7 +43,8 @@ def test_post_unaccept_on_issued_detail(client, staff_user, issued):
 
     page = client.get(reverse("proforma_detail", args=[issued.pk]))
     assert page.status_code == 200
-    assert b"Mark accepted" in page.content
+    assert b"Mark accepted" not in page.content
+    assert b"Mark rejected" not in page.content
 
 
 def test_list_shows_change_and_outcome_buttons(client, staff_user, issued):
@@ -94,12 +96,11 @@ def test_list_post_clear_accepted(client, staff_user, issued):
     assert b"Clear accepted" not in listing.content
 
 
-def test_mark_outcome_buttons_have_confirm_dialog(client, staff_user, issued):
+def test_issued_detail_hides_outcome_buttons(client, staff_user, issued):
     client.force_login(staff_user)
     page = client.get(reverse("proforma_detail", args=[issued.pk]))
     assert page.status_code == 200
-    assert b'data-confirm-i18n="confirmMarkAccepted"' in page.content
-    assert b'data-confirm-i18n="confirmMarkRejected"' in page.content
-    assert b'id="outcome-confirm"' in page.content
-    assert b'data-i18n="yes"' in page.content
-    assert b'data-i18n="no"' in page.content
+    assert b"Mark accepted" not in page.content
+    assert b"Mark rejected" not in page.content
+    assert b'data-confirm-i18n="confirmMarkAccepted"' not in page.content
+    assert b'data-confirm-i18n="confirmMarkRejected"' not in page.content
