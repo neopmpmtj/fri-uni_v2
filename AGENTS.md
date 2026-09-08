@@ -85,7 +85,7 @@ Mark complete during session-handoff: `- [x] ... (completed YYYY-MM-DD)`
 
 ## Session
 
-**Done:** Add default (`0021`): volume bands + default indoor on powers; draft **Add default** inserts a split pair from room m³. Dropped item `max_volume_m3`. **160 tests** green.
+**Done:** Add default inserts a split pair from room m³; optional extra tubing checkbox + length in that drawer (same as split). **163 tests** green.
 
 **Not done:** Production deploy; letterhead; real prices; capacity math; VAT on quote math/PDF; contact fields on issued-quote snapshots/PDF.
 

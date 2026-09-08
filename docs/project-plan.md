@@ -390,6 +390,7 @@ Do not implement in these phases:
 - [x] Line drawer: edit/delete 1-port split outdoor (completed 2026-09-07)
 - [x] Override checks: skip multi indoor-count at add indoor and Issue (completed 2026-09-07)
 - [x] Add default: volume band + default indoor on powers; drop item max_volume_m3 (completed 2026-09-08)
+- [x] Add default: optional extra tubing checkbox + length dropdown (completed 2026-09-08)
 
 ## Tests policy
 

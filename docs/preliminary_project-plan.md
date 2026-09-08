@@ -557,3 +557,22 @@ None.
 ### Open questions still open
 
 None.
+
+## Update 2026-09-08 — Add default extra tubing
+
+### What changed
+
+- **Add default** drawer has the same extra-tubing checkbox as split. Length dropdown is hidden until checked; shortest catalog length is pre-selected. Tubing is charged on the indoor line only; header `extra_tubing_metres` / tubing total mix with split and multi lines on the same quote.
+- Unchecked stays qty 1 with no extra tubing (previous default).
+
+### Apps added/removed
+
+None.
+
+### Decisions
+
+- Extra tubing on Add default is optional, not required. Same indoor-run rule as Add split.
+
+### Open questions still open
+
+None.

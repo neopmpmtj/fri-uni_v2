@@ -421,6 +421,8 @@ def proforma_detail(request, pk):
                             proforma,
                             default_form.cleaned_data["volume_m3"],
                             request.user,
+                            extra_tubing=default_form.cleaned_data["extra_tubing"],
+                            tubing_length=default_form.cleaned_data["tubing_length"],
                         )
                     except ValidationError as exc:
                         default_form.add_error(None, exc)

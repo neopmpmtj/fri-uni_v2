@@ -264,6 +264,29 @@ class DefaultSplitForm(forms.Form):
     volume_m3 = forms.DecimalField(
         min_value=0, max_digits=8, decimal_places=2, label="Room volume m3"
     )
+    extra_tubing = forms.BooleanField(required=False)
+    tubing_length = forms.ModelChoiceField(
+        queryset=TubingLength.objects.none(), required=False
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        lengths = TubingLength.objects.order_by("length")
+        self.fields["tubing_length"].queryset = lengths
+        if lengths.exists():
+            self.fields["tubing_length"].empty_label = None
+            self.fields["tubing_length"].initial = lengths.first()
+
+    def clean(self):
+        cleaned = super().clean()
+        extra = cleaned.get("extra_tubing")
+        if extra and not cleaned.get("tubing_length"):
+            raise ValidationError(
+                "Tubing length is required when extra tubing is needed."
+            )
+        if not extra:
+            cleaned["tubing_length"] = None
+        return cleaned
 
 
 class DataDefaultSelect(forms.Select):

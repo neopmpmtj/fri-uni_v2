@@ -983,7 +983,9 @@ def power_for_volume(volume_m3):
     return matches[0]
 
 
-def add_default_split(proforma, volume_m3, user):
+def add_default_split(
+    proforma, volume_m3, user, *, extra_tubing=False, tubing_length=None
+):
     require_draft(proforma)
     power = power_for_volume(volume_m3)
     indoor = power.default_indoor
@@ -993,7 +995,14 @@ def add_default_split(proforma, volume_m3, user):
         )
     if indoor.kind != Item.Kind.INDOOR:
         raise ValidationError("The default for this power must be an indoor unit.")
-    return add_line(proforma, indoor, user, quantity=1)
+    return add_line(
+        proforma,
+        indoor,
+        user,
+        quantity=1,
+        extra_tubing=extra_tubing,
+        tubing_length=tubing_length,
+    )
 
 
 def save_power(power, user):

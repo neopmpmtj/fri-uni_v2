@@ -373,7 +373,7 @@ Same validation and snapshot rules as the web app. Intended for LLM agent invoca
 - Notes:
   - Extra tubing is **per indoor line** and charged **per machine**: `line_total = quantity × (unit_price + tubing_amount)`.
   - On one invoice, some indoor runs may need extra tubing and some may not.
-  - Quote entry: **split** starts from design line → indoor SKU → auto-add matched ports=1 outdoor as `parent_line`. **Multi** starts from outdoor (`ports≥2`) then indoor children from `item_matches`. **Default** takes a room volume (m³), finds the `powers` band that contains it, inserts that row’s `default_indoor` at quantity 1 with no extra tubing, and auto-pairs the split outdoor like split. Volume is a picker only (not stored on the line). Staff may click Add default again for another room.
+  - Quote entry: **split** starts from design line → indoor SKU → auto-add matched ports=1 outdoor as `parent_line`. **Multi** starts from outdoor (`ports≥2`) then indoor children from `item_matches`. **Default** takes a room volume (m³), finds the `powers` band that contains it, inserts that row’s `default_indoor` at quantity 1, and auto-pairs the split outdoor like split. Extra tubing is optional on that indoor (checkbox; length shown when checked; shortest catalog length pre-selected), same indoor-run rule as split. Volume is a picker only (not stored on the line). Staff may click Add default again for another room.
   - At issue: every indoor has a parent; split outdoor has exactly 1 child; multi outdoor has 2..`max_indoor_ports` children unless `override_checks` is true; each indoor is in `item_matches` for that outdoor.
   - After issue, money and snapshot fields do not change if catalog prices or names change.
 

@@ -209,7 +209,8 @@ label {
     display: none;
 }
 
-#line-form:has(#id_extra_tubing:checked) .tubing-length-field {
+#line-form:has(#id_extra_tubing:checked) .tubing-length-field,
+#default-form:has(#id_extra_tubing:checked) .tubing-length-field {
     display: flex;
 }
 
