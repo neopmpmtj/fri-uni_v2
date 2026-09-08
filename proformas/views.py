@@ -13,6 +13,7 @@ from .forms import (
     BrandForm,
     ClientForm,
     ContactPositionForm,
+    DefaultSplitForm,
     FamilyForm,
     ItemForm,
     ItemPriceForm,
@@ -331,14 +332,16 @@ def proforma_detail(request, pk):
         }
     )
     line_form = ProformaLineForm()
+    default_form = DefaultSplitForm()
     editing_line = None
     parent_line = None
     outdoor_only = False
+    default_mode = False
     hide_family = Family.objects.count() <= 1
 
     if request.method == "POST":
         action = request.POST.get("action")
-        if action in {"save_header", "delete_line", "save_line", "issue"} and not is_draft:
+        if action in {"save_header", "delete_line", "save_line", "add_default", "issue"} and not is_draft:
             messages.error(request, "Only draft proformas can be edited.")
             return redirect("proforma_detail", pk=proforma.pk)
         if action in {"accept_proforma", "unaccept_proforma", "reject_proforma", "unreject_proforma"} and proforma.status != Proforma.Status.ISSUED:
@@ -409,6 +412,20 @@ def proforma_detail(request, pk):
                         )
                     return redirect("proforma_detail", pk=proforma.pk)
                 editing_line = instance
+            elif action == "add_default" and is_draft:
+                default_form = DefaultSplitForm(request.POST)
+                default_mode = True
+                if default_form.is_valid():
+                    try:
+                        services.add_default_split(
+                            proforma,
+                            default_form.cleaned_data["volume_m3"],
+                            request.user,
+                        )
+                    except ValidationError as exc:
+                        default_form.add_error(None, exc)
+                    else:
+                        return redirect("proforma_detail", pk=proforma.pk)
             elif action == "issue" and is_draft:
                 header_form = ProformaHeaderForm(request.POST)
                 if header_form.is_valid():
@@ -458,6 +475,8 @@ def proforma_detail(request, pk):
             ProformaLine, pk=request.GET["parent"], proforma=proforma
         )
         line_form = ProformaLineForm(parent_line=parent_line)
+    elif request.GET.get("new_line") == "default":
+        default_mode = True
     elif request.GET.get("new_line") == "multi":
         outdoor_only = True
         line_form = ProformaLineForm(outdoor_only=True)
@@ -468,6 +487,8 @@ def proforma_detail(request, pk):
     drawer_open = bool(
         editing_line
         or line_form.errors
+        or default_form.errors
+        or default_mode
         or request.GET.get("new_line")
         or request.GET.get("parent")
     )
@@ -483,9 +504,11 @@ def proforma_detail(request, pk):
             "lines": lines,
             "header_form": header_form,
             "line_form": line_form,
+            "default_form": default_form,
             "editing_line": editing_line,
             "parent_line": parent_line,
             "outdoor_only": outdoor_only,
+            "default_mode": default_mode,
             "hide_family": hide_family,
             "drawer_open": drawer_open,
             "is_draft": is_draft,
@@ -812,7 +835,7 @@ def item_list(request):
 @login_required
 def power_list(request):
     q = request.GET.get("q", "").strip()
-    rows = Power.objects.order_by("power", "unit")
+    rows = Power.objects.select_related("default_indoor").order_by("power", "unit")
     if q:
         rows = rows.filter(unit__icontains=q) | rows.filter(power__icontains=q)
         rows = rows.distinct()

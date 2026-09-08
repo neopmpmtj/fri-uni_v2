@@ -90,7 +90,6 @@ def indoor(db):
         power=power,
         internal_code="MIT-SPL-I-9",
         kind=Item.Kind.INDOOR,
-        max_volume_m3=Decimal("20"),
         list_price=Decimal("500.00"),
     )
     outdoor = Item.objects.create(

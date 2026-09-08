@@ -1,0 +1,12 @@
+<form method="post" action="{% url 'proforma_detail' proforma.pk %}" id="default-form">
+    {% csrf_token %}
+    {{ default_form.non_field_errors }}
+    <label>
+        <span data-i18n="roomVolumeM3">Room volume m3</span>
+        {{ default_form.volume_m3 }}
+        {{ default_form.volume_m3.errors }}
+    </label>
+    <div class="drawer-actions">
+        <button type="submit" name="action" value="add_default" class="btn primary" data-i18n="addDefault">Add default</button>
+    </div>
+</form>

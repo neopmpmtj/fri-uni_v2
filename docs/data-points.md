@@ -207,17 +207,20 @@ Same validation and snapshot rules as the web app. Intended for LLM agent invoca
 
 ### powers
 
-- Purpose: standard catalog power ratings (AC BTU today; kW and other units later)
+- Purpose: standard catalog power ratings (AC BTU today; kW and other units later) and the room-volume band used by **Add default**
 - Written by (apps): staff web app (setup page)
 - Fields (plus always-on):
   - `power` — integer, required (e.g. `9000`; kW values such as `12` later)
   - `unit` — text, required (e.g. `BTU`, `kW`; stored trimmed)
-- Relationships: has many `items`
-- Uniqueness: live (`power`, `unit`) with unit compared case-insensitive
+  - `volume_from_m3` — number, optional (inclusive cubic-metre floor of this band)
+  - `volume_to_m3` — number, optional (inclusive cubic-metre ceiling of this band)
+  - `default_indoor` — fk → `items`, optional (`kind=indoor` of this same power; the SKU Add default inserts)
+- Relationships: has many `items`; optional one default indoor
+- Uniqueness: live (`power`, `unit`) with unit compared case-insensitive; live volume bands that are both set must not overlap
 - Reason-required fields: none
 - Extra history table: no
 - Extra activity table: no
-- Notes: seed starts with 9000 / 12000 / 18000 BTU. New item picks a row from this lookup instead of typing a number.
+- Notes: seed starts with 9000 / 12000 / 18000 BTU, bands 0–20 / 21–35 / 36–50 m³, default indoor Daikin Perfera at that BTU. Both volume bounds are set together, or both blank (power is not used by Add default). `volume_from_m3` ≥ 0; `volume_to_m3` ≥ `volume_from_m3`. Staff may add more powers with their own bands and default indoor. New item picks a row from this lookup instead of typing a number.
 
 ### vat_rates
 
@@ -247,7 +250,6 @@ Same validation and snapshot rules as the web app. Intended for LLM agent invoca
   - `kind` — enum `indoor` | `outdoor`, required
   - `power` — fk → `powers`, required
   - `max_indoor_ports` — integer, required when `kind=outdoor` (≥1; 1 = split outdoor, 2+ = multi outdoor). Null when `kind=indoor`.
-  - `max_volume_m3` — number, optional (room volume this indoor is suitable for, up to this many cubic metres; e.g. 9000 BTU indoor → 20). Null = unknown / not applicable / outdoor. For later auto-matching; not used in quoting yet.
   - `list_price` — money, required, default 0 (current **sales** price; edited only on the manufacturer pricelist)
   - `is_default` — boolean, required, default false
 - Relationships: indoor belongs to one design line (`sub_family`) and thus a family; outdoor has no design line; both belong to one `brand`, one `vat_rate`, and one `power`; referenced by `proforma_lines` and `item_matches`
@@ -255,7 +257,7 @@ Same validation and snapshot rules as the web app. Intended for LLM agent invoca
 - Reason-required fields: `list_price`
 - Extra history table: no (locked lines hold the snapshot; no catalog price-history screen)
 - Extra activity table: no
-- Notes: pairing is `item_matches`, not a catalog FK from indoor to outdoor and not a second items table (`interior.exterior_id` stays rejected). Indoor and outdoor stay one table (same noun, `kind`). Volume-based auto-pick is deferred (field stored only). New items start at sales price 0 until priced on the manufacturer page. VAT is identity on the item; line totals do not include VAT yet. When the indoor design line has a manufacturer, the item’s `brand` is copied from that design line and cannot be chosen independently.
+- Notes: pairing is `item_matches`, not a catalog FK from indoor to outdoor and not a second items table (`interior.exterior_id` stays rejected). Indoor and outdoor stay one table (same noun, `kind`). Room-volume auto-pick lives on `powers` (band + default indoor), not on the item. New items start at sales price 0 until priced on the manufacturer page. VAT is identity on the item; line totals do not include VAT yet. When the indoor design line has a manufacturer, the item’s `brand` is copied from that design line and cannot be chosen independently.
 
 ### item_matches
 
@@ -371,7 +373,7 @@ Same validation and snapshot rules as the web app. Intended for LLM agent invoca
 - Notes:
   - Extra tubing is **per indoor line** and charged **per machine**: `line_total = quantity × (unit_price + tubing_amount)`.
   - On one invoice, some indoor runs may need extra tubing and some may not.
-  - Quote entry: **split** starts from design line → indoor SKU → auto-add matched ports=1 outdoor as `parent_line`. **Multi** starts from outdoor (`ports≥2`) then indoor children from `item_matches`.
+  - Quote entry: **split** starts from design line → indoor SKU → auto-add matched ports=1 outdoor as `parent_line`. **Multi** starts from outdoor (`ports≥2`) then indoor children from `item_matches`. **Default** takes a room volume (m³), finds the `powers` band that contains it, inserts that row’s `default_indoor` at quantity 1 with no extra tubing, and auto-pairs the split outdoor like split. Volume is a picker only (not stored on the line). Staff may click Add default again for another room.
   - At issue: every indoor has a parent; split outdoor has exactly 1 child; multi outdoor has 2..`max_indoor_ports` children unless `override_checks` is true; each indoor is in `item_matches` for that outdoor.
   - After issue, money and snapshot fields do not change if catalog prices or names change.
 
@@ -388,6 +390,8 @@ Same validation and snapshot rules as the web app. Intended for LLM agent invoca
 - Per-app copies of shared entities
 - Official invoice / payment / tax tables (`vat_rates` on catalog items is not this)
 - Unlock or revision-chain tables for locked proformas
+- `items.max_volume_m3` (volume bands live on `powers`)
+- Stored room volume on `proforma_lines`, `proformas`, or `sites` (Add default picker only)
 
 ## Open questions
 

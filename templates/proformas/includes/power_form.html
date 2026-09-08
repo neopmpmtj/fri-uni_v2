@@ -12,6 +12,21 @@
         {{ form.unit }}
         {{ form.unit.errors }}
     </label>
+    <label>
+        <span data-i18n="volumeFromM3">Volume from m3</span>
+        {{ form.volume_from_m3 }}
+        {{ form.volume_from_m3.errors }}
+    </label>
+    <label>
+        <span data-i18n="volumeToM3">Volume to m3</span>
+        {{ form.volume_to_m3 }}
+        {{ form.volume_to_m3.errors }}
+    </label>
+    <label>
+        <span data-i18n="defaultIndoor">Default indoor</span>
+        {{ form.default_indoor }}
+        {{ form.default_indoor.errors }}
+    </label>
     <div class="drawer-actions">
         {% if editing and user.can_delete %}
         <button type="submit" name="action" value="delete" class="btn danger" data-i18n="delete">Delete</button>

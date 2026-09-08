@@ -284,6 +284,19 @@ class Power(AuditedModel):
 
     power = models.IntegerField()
     unit = models.CharField(max_length=32)
+    volume_from_m3 = models.DecimalField(
+        max_digits=8, decimal_places=2, null=True, blank=True
+    )
+    volume_to_m3 = models.DecimalField(
+        max_digits=8, decimal_places=2, null=True, blank=True
+    )
+    default_indoor = models.ForeignKey(
+        "Item",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="powers_as_volume_default",
+    )
 
     class Meta:
         ordering = ["power", "unit"]
@@ -293,6 +306,17 @@ class Power(AuditedModel):
                 Lower("unit"),
                 condition=Q(deleted_at__isnull=True),
                 name="uniq_live_power_unit_ci",
+            ),
+            models.CheckConstraint(
+                condition=(
+                    Q(volume_from_m3__isnull=True, volume_to_m3__isnull=True)
+                    | (
+                        Q(volume_from_m3__isnull=False, volume_to_m3__isnull=False)
+                        & Q(volume_from_m3__gte=0)
+                        & Q(volume_from_m3__lte=models.F("volume_to_m3"))
+                    )
+                ),
+                name="power_volume_band_valid",
             ),
         ]
 
@@ -365,9 +389,6 @@ class Item(AuditedModel):
         null=True,
         blank=True,
         validators=[MinValueValidator(1)],
-    )
-    max_volume_m3 = models.DecimalField(
-        max_digits=8, decimal_places=2, null=True, blank=True
     )
     list_price = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     is_default = models.BooleanField(default=False)

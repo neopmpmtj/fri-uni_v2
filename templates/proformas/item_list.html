@@ -60,7 +60,6 @@
                     <a href="?{{ sort_urls.power }}" class="th-sort{% if sort == 'power' %} is-sorted is-{{ dir }}{% endif %}" data-i18n="power">Power</a>
                 </th>
                 <th data-i18n="unit">Unit</th>
-                <th data-i18n="maxVolumeM3">Max m3</th>
                 <th data-i18n="vat">VAT</th>
                 <th data-i18n="actions">Actions</th>
             </tr>
@@ -76,12 +75,11 @@
                 <td>{% if row.max_indoor_ports %}{{ row.max_indoor_ports }}{% else %}—{% endif %}</td>
                 <td>{{ row.power.power }}</td>
                 <td>{{ row.power.unit }}</td>
-                <td>{% if row.max_volume_m3 %}{{ row.max_volume_m3 }}{% else %}—{% endif %}</td>
                 <td>{{ row.vat_rate.label }}</td>
                 <td><a href="{% url 'item_list' %}?id={{ row.pk }}" data-i18n="edit">Edit</a></td>
             </tr>
             {% empty %}
-            <tr><td colspan="11" data-i18n="empty">No rows yet.</td></tr>
+            <tr><td colspan="10" data-i18n="empty">No rows yet.</td></tr>
             {% endfor %}
         </tbody>
     </table>

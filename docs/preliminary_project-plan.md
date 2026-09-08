@@ -533,3 +533,27 @@ None.
 ### Open questions still open
 
 None.
+
+## Update 2026-09-08 — Add default (volume → split pair)
+
+### What changed
+
+- Third line-insert mode on the draft work page: **Add default**. Staff type room volume (m³); the app finds the `powers` band that contains it and inserts that row’s default indoor plus its matched 1-port outdoor (same path as Add split). Quantity 1, no extra tubing. Repeat for another room. Split and multi stay as manual options.
+- Volume bands and the default indoor SKU live on **`powers`** (`volume_from_m3`, `volume_to_m3`, `default_indoor`). Demo seed: 9000 BTU 0–20, 12000 BTU 21–35, 18000 BTU 36–50; default indoor Daikin Perfera at each BTU. Staff add further powers on the Powers setup page.
+- Dropped unused `items.max_volume_m3`. Typed volume is not stored on the line, header, site, or PDF.
+- No indoor-BTU vs outdoor-capacity math. Outdoor comes only from the indoor’s existing default split match. Volume above the highest band, in a gap, or with no default indoor / no split match, blocks with a message.
+
+### Apps added/removed
+
+None.
+
+### Decisions
+
+- Add default is a work-page action after client + site, not a field on create-draft.
+- Always a split pair; never multi from volume.
+- Forget the typed m³ after insert (picker only).
+- Capacity math stays out of this slice.
+
+### Open questions still open
+
+None.
