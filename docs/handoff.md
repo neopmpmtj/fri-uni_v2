@@ -1,6 +1,6 @@
 # Session handoff
 
-> **Last updated:** 2026-09-08 07:20 WEST (Europe/Lisbon)  
+> **Last updated:** 2026-09-08 08:04 WEST (Europe/Lisbon)  
 > Replace with the current date and time whenever you edit this file.
 
 ## Project
@@ -27,8 +27,8 @@ Do not run `seed_demo` in production. Fresh local DB: `rm -f db.sqlite3`, then `
 
 ## Done (this session)
 
-- **Add default:** draft work-page action; room m³ picks a `powers` band and inserts that row’s default indoor + matched 1-port outdoor (qty 1, no extra tubing). Migration `0021`. Dropped `items.max_volume_m3`. Seed: 0–20 / 21–35 / 36–50 m³; Daikin Perfera defaults.
-- **Tests:** **160 passing** (`pytest`)
+- **Add default:** draft work-page action; room m³ picks a `powers` band and inserts that row’s default indoor + matched 1-port outdoor (qty 1). Optional extra tubing checkbox + length (same as split). Migration `0021`. Dropped `items.max_volume_m3`. Seed: 0–20 / 21–35 / 36–50 m³; Daikin Perfera defaults.
+- **Tests:** **163 passing** (`pytest`)
 
 ## Done (earlier)
 
