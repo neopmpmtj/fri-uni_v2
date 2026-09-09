@@ -1,12 +1,19 @@
 from django.core.management.base import BaseCommand
 
-from proformas.seed import DEMO_ADMIN_EMAIL, DEMO_MANAGER_EMAIL, DEMO_PASSWORD, seed_demo
+from proformas.seed import (
+    AGENT_ADMIN_EMAIL,
+    AGENT_EMAIL,
+    DEMO_ADMIN_EMAIL,
+    DEMO_MANAGER_EMAIL,
+    DEMO_PASSWORD,
+    seed_demo,
+)
 
 
 class Command(BaseCommand):
     help = (
         "Idempotent demo suite: catalog, admin and manager users, "
-        "clients, sites, and sample proformas."
+        "agent badges, clients, sites, and sample proformas. Local only."
     )
 
     def add_arguments(self, parser):
@@ -30,5 +37,9 @@ class Command(BaseCommand):
         self.stdout.write(f"  admin:   {DEMO_ADMIN_EMAIL}  (Django admin, can delete)")
         self.stdout.write(
             f"  manager: {DEMO_MANAGER_EMAIL}  (staff UI, cannot delete)"
+        )
+        self.stdout.write(f"  agent:   {AGENT_EMAIL}  (Pi quoting, cannot delete)")
+        self.stdout.write(
+            f"  agent-admin: {AGENT_ADMIN_EMAIL}  (Pi deletes after confirm)"
         )
         self.stdout.write(f"  password: {options['password']}")

@@ -1,5 +1,7 @@
 from decimal import Decimal
 
+from decouple import config
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.management.base import CommandError
 
@@ -110,6 +112,10 @@ VAT_RATES = (
 DEMO_ADMIN_EMAIL = "proforma-admin@fribila.dev"
 DEMO_MANAGER_EMAIL = "proforma-manager@fribila.dev"
 DEMO_PASSWORD = "fribila-demo"
+AGENT_EMAIL = "agent@fribila.dev"
+AGENT_ADMIN_EMAIL = "agent-admin@fribila.dev"
+AGENT_PASSWORD_ENV = "AGENT_PASSWORD"
+AGENT_ADMIN_PASSWORD_ENV = "AGENT_ADMIN_PASSWORD"
 
 CONTACT_POSITIONS = ("CEO", "CFO", "Manager", "Director", "Other")
 
@@ -467,6 +473,54 @@ def _ensure_user(email, password, *, role, is_superuser=False, reset_password=Fa
     return User.objects.create_user(email=email, password=password, role=role)
 
 
+def _is_production_runtime():
+    return not settings.DEBUG and not getattr(settings, "TESTING", False)
+
+
+def seed_agent_users(*, staff_password, admin_password, reset_password=False):
+    staff = _ensure_user(
+        AGENT_EMAIL,
+        staff_password,
+        role=User.Role.STAFF,
+        reset_password=reset_password,
+    )
+    admin = _ensure_user(
+        AGENT_ADMIN_EMAIL,
+        admin_password,
+        role=User.Role.ADMIN,
+        is_superuser=True,
+        reset_password=reset_password,
+    )
+    return staff, admin
+
+
+def resolve_agent_passwords(*, staff_password=None, admin_password=None):
+    staff = (staff_password or "").strip() or config(AGENT_PASSWORD_ENV, default="")
+    admin = (admin_password or "").strip() or config(
+        AGENT_ADMIN_PASSWORD_ENV, default=""
+    )
+    missing = []
+    if not staff:
+        missing.append(f"--password or {AGENT_PASSWORD_ENV}")
+    if not admin:
+        missing.append(f"--admin-password or {AGENT_ADMIN_PASSWORD_ENV}")
+    if missing:
+        raise CommandError("Missing " + " and ".join(missing) + ".")
+    return staff, admin
+
+
+def seed_prod(*, staff_password, admin_password, reset_password=False):
+    if _is_production_runtime() and (
+        staff_password == DEMO_PASSWORD or admin_password == DEMO_PASSWORD
+    ):
+        raise CommandError("Refusing the demo password when DEBUG is False.")
+    return seed_agent_users(
+        staff_password=staff_password,
+        admin_password=admin_password,
+        reset_password=reset_password,
+    )
+
+
 def _require_catalog_row(qs, *, label):
     try:
         return qs.get()
@@ -629,6 +683,10 @@ def _ensure_proforma(site, actor, *, status, lines, accepted=False, rejected=Fal
 
 
 def seed_demo(*, password=DEMO_PASSWORD, reset_password=False):
+    if _is_production_runtime():
+        raise CommandError(
+            "seed_demo is for local development only. Use seed_prod in production."
+        )
     seed_catalog()
     admin = _ensure_user(
         DEMO_ADMIN_EMAIL,
@@ -641,6 +699,11 @@ def seed_demo(*, password=DEMO_PASSWORD, reset_password=False):
         DEMO_MANAGER_EMAIL,
         password,
         role=User.Role.STAFF,
+        reset_password=reset_password,
+    )
+    seed_agent_users(
+        staff_password=password,
+        admin_password=password,
         reset_password=reset_password,
     )
     sites = _seed_clients_and_sites(manager)

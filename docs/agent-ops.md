@@ -1,8 +1,8 @@
 # fri-uni — Agent Operations Blueprint (voice-first)
 
 **Project:** fri-uni (internal HVAC proforma back office) — repo `neopmpmtj/fri-uni_v2`
-**Date:** 2026-09-08 (blueprint v1) · **rev 4: 2026-09-09** — P0–P2 landed (lookup, client/site save, quote lifecycle + PDF); P3 identity parked
-**Local copy:** `/home/pmpmt/app/fri-uni_v2` (main, **218 tests green**)
+**Date:** 2026-09-08 (blueprint v1) · **rev 5: 2026-09-09** — P0–P3: CLI + seed_prod badges + pi-playbook
+**Local copy:** `/home/pmpmt/app/fri-uni_v2` (main, **225 tests green**)
 **Goal:** make the app 100% operable by an AI agent through **voice conversation** — the agent lists, filters, creates, edits and issues proformas exactly like a staff member, but faster, with no human needing to hold every detail in their head.
 
 ---
@@ -34,7 +34,7 @@ Human (voice / chat)  →  agent (Neo)  →  management commands  →  services.
 | Permission rules | `require_delete_permission` etc. | Only `admin` soft-deletes clients/sites/catalog; parameters never delete |
 | Frozen issue snapshots | `issue_proforma` | Client/site/catalog display fields copied onto proforma + lines |
 | Corrections | `change_proforma` (supersede), accept/reject overlays | No `cancelled` status |
-| Tests | pytest, **218 passing** | 2–6 tests per phase convention; agent CLI: `test_agent_cli_p0.py`, `test_agent_cli_p1.py`, `test_agent_cli_p2.py` |
+| Tests | pytest, **225 passing** | 2–6 tests per phase convention; agent CLI + `test_seed_prod.py` |
 | Company profile (issuer) | `proformas.models.Company` + `company_edit` staff page | Singleton (`uniq_live_company`); edited by staff/admin, **no create/delete**; quotes/PDF read it **live** (not snapshotted) |
 | VAT on quotes | migrations `0023_vat_and_validity`, `0024_company_profile` | Line/quote IVA after discounts; `vat_amount`, `total_with_vat` frozen at issue |
 | Quote validity | `validity_days` (default 7, from `default_validity_days` parameter) | Window starts at **issue**; `valid_until` frozen; expiry is display-only |
@@ -226,9 +226,13 @@ Agent:  (create_proforma --site 12 --line 501:1 --line 305:1 --line 306:1 --line
 
 ## 6. Agent identity, environment & audit
 
-- **Create one dedicated user** (recommended): `agent@fribila.dev`, `role=staff`, password stored in `.env`/vault (never committed). All agent commands pass `--user agent@fribila.dev` so `created_by/updated_by/activity` shows the agent. (Accounts stay admin-provisioned in Django admin — no public signup; clients are not users.)
-- **Deletes need admin**: two options — (A) keep agent `staff`; deletes requested by the human are executed with an explicit `--user` admin email that the human authorizes, or (B) a second account `agent-admin@fribila.dev` used *only* after the human approves a delete. Recommended: **(B)**, because it keeps audit clean while avoiding shared admin credentials. Decide with Pedro.
+- **One Pi Agent.** Two Django badges created by `seed_demo` (local) and `seed_prod` (production):
+  - `agent@fribila.dev` — `role=staff`. Default `--user` for list/create/issue/PDF.
+  - `agent-admin@fribila.dev` — `role=admin` (Django admin, can delete). Use only after the human confirms a delete.
+- Production passwords: `AGENT_PASSWORD` and `AGENT_ADMIN_PASSWORD` in server `.env`; `seed_prod` flags override. Never committed. See [`docs/DEPLOYMENT.md`](DEPLOYMENT.md).
+- **Playbook to give Pi:** [`docs/pi-playbook.md`](pi-playbook.md). [`AGENTS.md`](../AGENTS.md) is for Cursor coding, not Pi quoting.
 - Environment: local `.venv/bin/python manage.py …`; production later via the deploy pipeline (same commands, Postgres). `.env` never committed. No emoji in logs (repo rule).
+- Do not run `seed_demo` in production.
 
 ---
 
@@ -255,15 +259,15 @@ Phases (each: commands + pytest 2–6 tests + docs):
 - **P0** — list/search/show commands for core entities + JSON envelope. **Done 2026-09-09.**
 - **P1** — `client_save` / `site_save` / admin-only deletes. **Done 2026-09-09.** Catalog write commands still out of scope.
 - **P2** — `--volume-m3`, line add/update/remove, issue/change/accept/reject/unaccept/unreject, `proforma_pdf`. **Done 2026-09-09.** `create_proforma` now prints the JSON envelope.
-- **P3** — agent user(s) — **parked**; discuss before seeding. Not two AI agents: two Django logins for `--user` audit / admin deletes.
-- Full suite stays ≥ 218 green (current baseline); dry-run demos with `seed_demo` data before any real data.
+- **P3** — `seed_prod` + agent badges + [`docs/pi-playbook.md`](pi-playbook.md). **Done 2026-09-09.** One Pi, two Django users.
+- Full suite stays ≥ 225 green (current baseline); dry-run demos with `seed_demo` data before any real data.
 
 ---
 
 ## 9. Open decisions for Pedro
 
 1. ~~Confirm `fri-uni_v2` is the canonical repo~~ → **settled by activity**: all PRs #1–#7 landed on `fri-uni_v2`. v1 `fri-uni` still to be archived by Pedro on GitHub (cosmetic).
-2. Agent accounts: option A (staff + human-approved admin deletes) vs B (separate agent-admin account). (Recommend B.)
+2. ~~Agent accounts A vs B~~ → **B**: `agent@` staff + `agent-admin@` for confirmed deletes. `seed_prod` / `seed_demo`.
 3. Should the agent ever auto-issue without an explicit second confirmation? (Recommend: no.)
 4. New mode flag name: `--volume-m3` on `create_proforma` vs a separate `create_proforma_default` command. (Recommend the flag.)
 5. ~~VAT math is product-backlog~~ → **RESOLVED (landed)**: VAT math + quote validity now live in services (`quote_vat_breakdown`, `_apply_line_and_labour_vat`, `total_with_vat`) and CLI `--validity-days` — agent layer needs no command changes; totals read net + IVA.

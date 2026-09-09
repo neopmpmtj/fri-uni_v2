@@ -2,13 +2,13 @@
 
 Internal HVAC back office for creating **proforma invoices** — client quotes for equipment installation and cost, including commercial and financial discounts. Not an official finance document.
 
-> **Last updated:** 2026-09-09 13:40 WEST
+> **Last updated:** 2026-09-09 16:45 WEST
 
 ## What it does
 
 Staff sign in with email, pick language on the dashboard, then quote from a catalog (family → indoor design line → indoor item; outdoor units by manufacturer, power, and port count; pairing via item matches): client and site, split, volume **Add default**, or multi-split systems, optional extra tubing per indoor run, extra labour, validity window, observations. **Issue** freezes a snapshot (including IVA and valid-until); staff can view the quote on screen and download a PDF with the live Fribila letterhead. Clients do not log in.
 
-A management command (`create_proforma`) can create a proforma in one shot (same database, mandatory `--user`; `--line` or `--volume-m3`). Lookup, client/site writes, issue/PDF, and line edits for a voice/bash agent print JSON. See [`docs/agent-ops.md`](docs/agent-ops.md).
+A management command (`create_proforma`) can create a proforma in one shot (same database, mandatory `--user`; `--line` or `--volume-m3`). Lookup, client/site writes, issue/PDF, and line edits for a voice/bash agent print JSON. Give Pi [`docs/pi-playbook.md`](docs/pi-playbook.md).
 
 ## Quick start
 
@@ -25,8 +25,10 @@ Demo logins (password `fribila-demo`):
 
 - `proforma-admin@fribila.dev` — Django admin, can delete clients/sites
 - `proforma-manager@fribila.dev` — quoting UI, cannot delete
+- `agent@fribila.dev` — Pi quoting CLI (`--user`), cannot delete
+- `agent-admin@fribila.dev` — Pi deletes only after you confirm
 
-`migrate` already seeds VAT, powers, countries, contact positions, parameters, the Air conditioners family, brands, tubing lengths, and the Fribila company profile. `seed_catalog` adds design lines, items, and matches. Do not run `seed_demo` in production.
+`migrate` already seeds VAT, powers, countries, contact positions, parameters, the Air conditioners family, brands, tubing lengths, and the Fribila company profile. `seed_catalog` adds design lines, items, and matches. Do not run `seed_demo` in production. Production agent badges: `seed_prod` (see [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md)). Pi instructions: [`docs/pi-playbook.md`](docs/pi-playbook.md).
 
 ## Documentation
 
@@ -39,6 +41,7 @@ Demo logins (password `fribila-demo`):
 | [`docs/preliminary_project-plan.md`](docs/preliminary_project-plan.md) | Product scope, apps, decisions |
 | [`docs/reviews/`](docs/reviews/) | In-progress audits |
 | [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) | VPS deploy notes |
+| [`docs/pi-playbook.md`](docs/pi-playbook.md) | What to give Pi (voice + `--user` + commands) |
 | [`docs/agent-ops.md`](docs/agent-ops.md) | Voice/bash agent CLI contract |
 | [`AGENTS.md`](AGENTS.md) | Agent instructions |
 

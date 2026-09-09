@@ -22,7 +22,7 @@ todos:
     status: completed
   - id: p3-later
     content: "Later: seed agent + agent-admin users; README voice usage; sync agent-ops.md to what shipped"
-    status: pending
+    status: completed
 isProject: false
 ---
 

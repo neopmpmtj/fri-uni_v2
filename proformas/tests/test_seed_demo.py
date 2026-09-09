@@ -7,7 +7,13 @@ from django.urls import reverse
 
 from accounts.models import User
 from proformas.models import Client, Proforma, Site
-from proformas.seed import DEMO_ADMIN_EMAIL, DEMO_MANAGER_EMAIL, DEMO_PASSWORD
+from proformas.seed import (
+    AGENT_ADMIN_EMAIL,
+    AGENT_EMAIL,
+    DEMO_ADMIN_EMAIL,
+    DEMO_MANAGER_EMAIL,
+    DEMO_PASSWORD,
+)
 
 pytestmark = [pytest.mark.integration, pytest.mark.django_db]
 
@@ -21,6 +27,12 @@ def test_seed_demo_creates_users_clients_and_quotes():
     assert admin.can_delete
     assert manager.role == User.Role.STAFF
     assert not manager.can_delete
+    agent = User.objects.get(email=AGENT_EMAIL)
+    agent_admin = User.objects.get(email=AGENT_ADMIN_EMAIL)
+    assert agent.role == User.Role.STAFF
+    assert not agent.can_delete
+    assert agent_admin.role == User.Role.ADMIN
+    assert agent_admin.can_delete
     assert User.objects.filter(email=DEMO_ADMIN_EMAIL).count() == 1
     assert Client.objects.count() == 3
     assert Site.objects.count() == 9
@@ -143,6 +155,8 @@ def test_demo_users_can_log_in(client):
     call_command("seed_demo")
     assert client.login(email=DEMO_MANAGER_EMAIL, password=DEMO_PASSWORD)
     assert client.login(email=DEMO_ADMIN_EMAIL, password=DEMO_PASSWORD)
+    assert client.login(email=AGENT_EMAIL, password=DEMO_PASSWORD)
+    assert client.login(email=AGENT_ADMIN_EMAIL, password=DEMO_PASSWORD)
 
 
 @pytest.mark.unit

@@ -31,12 +31,22 @@ python manage.py runserver
    - `DATABASE_URL=postgres://...`
    - `DJANGO_SECRET_KEY=...`
    - `ALLOWED_HOSTS=your.domain`
+   - `AGENT_PASSWORD=…` and `AGENT_ADMIN_PASSWORD=…` (Pi CLI badges; never commit)
 4. `.venv/bin/pip install -r requirements.txt`
 5. `.venv/bin/python manage.py migrate --noinput`
 6. `.venv/bin/python manage.py collectstatic --noinput`
-7. Install systemd unit from [`deploy/gunicorn.service`](../deploy/gunicorn.service) (edit paths).
-8. Install nginx site from [`deploy/nginx.conf`](../deploy/nginx.conf) (edit domain + paths).
-9. For PDF download (WeasyPrint), install Debian packages: `pango1.0-tools` / `libpango-1.0-0`, `libcairo2`, `libgdk-pixbuf-2.0-0`, and related fonts (e.g. `fonts-dejavu-core`). PDF render errors surface as a flash message on the proforma detail page (not HTTP 500). A hung WeasyPrint worker is mitigated by gunicorn `--timeout 120` in [`deploy/gunicorn.service`](../deploy/gunicorn.service); there is no application-level PDF timeout yet (see project-plan backlog).
+7. One-time agent users (not part of every deploy):
+
+```bash
+.venv/bin/python manage.py seed_prod
+# or override .env:
+.venv/bin/python manage.py seed_prod --password '…' --admin-password '…'
+```
+
+Creates `agent@fribila.dev` (staff) and `agent-admin@fribila.dev` (admin, Django admin). Idempotent. Do **not** run `seed_demo` on the VPS (fake clients and quotes).
+8. Install systemd unit from [`deploy/gunicorn.service`](../deploy/gunicorn.service) (edit paths).
+9. Install nginx site from [`deploy/nginx.conf`](../deploy/nginx.conf) (edit domain + paths).
+10. For PDF download (WeasyPrint), install Debian packages: `pango1.0-tools` / `libpango-1.0-0`, `libcairo2`, `libgdk-pixbuf-2.0-0`, and related fonts (e.g. `fonts-dejavu-core`). PDF render errors surface as a flash message on the proforma detail page (not HTTP 500). A hung WeasyPrint worker is mitigated by gunicorn `--timeout 120` in [`deploy/gunicorn.service`](../deploy/gunicorn.service); there is no application-level PDF timeout yet (see project-plan backlog).
 
 ## Every deploy
 
