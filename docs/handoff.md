@@ -36,7 +36,7 @@ Do not run `seed_demo` in production. Fresh local DB: `rm -f db.sqlite3`, then `
 ## Done (this session)
 
 - **Company singleton:** `Company` model, migration `0024` seeds one Fribila row (address, phone, phone note, email; NIF/IBAN/contact/logo blank for staff to fill later). `get_company()` / `save_company()`; Portuguese IBAN validator. Setup page (form on the page, multipart logo, no delete). Dashboard Setup card. Staff and admin may edit.
-- **Tests:** company seed, singleton, IBAN, staff GET/POST, NIF/phone length. Also catalog-page coverage for `/company/`.
+- **Tests:** **198 passing** (`pytest`), including company seed, singleton, IBAN, staff GET/POST, NIF/phone length.
 - Pillow added to `requirements.txt` for `ImageField` uploads.
 
 ## Done (earlier)
