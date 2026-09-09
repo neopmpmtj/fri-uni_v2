@@ -20,7 +20,7 @@ At **issue**, snapshot client, site, and catalog display fields onto the proform
 
 Shared core in one database.
 
-- Staff web app (MVP) writes all tables below. Catalog identity and setup (families, indoor design lines / sub-families, manufacturers, items, item matches, VAT rates, parameters, tubing lengths) are staff pages. Django admin is not the catalog UI (users and audit only).
+- Staff web app (MVP) writes all tables below. Catalog identity and setup (families, indoor design lines / sub-families, manufacturers, items, item matches, VAT rates, parameters, tubing lengths, company profile) are staff pages. Django admin is not the catalog UI (users and audit only).
 - **CLI** (later slice) writes the same proforma workflow so an LLM agent can create a proforma in one shot. Not a separate store.
 
 ### CLI contract (later slice; no extra schema)
@@ -55,7 +55,7 @@ Same validation and snapshot rules as the web app. Intended for LLM agent invoca
   - `role` — enum `staff` | `admin`, required
   - `is_active` — boolean, required
 - Uniqueness: live `email`
-- Notes: maps to existing `accounts.User` (email login). Admin-provisioned; no public signup. Clients are not users. Demo manager (`staff`) may create and edit clients, sites, catalog (families, indoor design lines, manufacturers, items, item matches, VAT rates, sales prices, tubing lengths), parameters, and proformas, and may issue / mark accepted or rejected; only `admin` may soft-delete clients, sites, and catalog rows. Parameters have no delete.
+- Notes: maps to existing `accounts.User` (email login). Admin-provisioned; no public signup. Clients are not users. Demo manager (`staff`) may create and edit clients, sites, catalog (families, indoor design lines, manufacturers, items, item matches, VAT rates, sales prices, tubing lengths), parameters, the company profile, and proformas, and may issue / mark accepted or rejected; only `admin` may soft-delete clients, sites, and catalog rows. Parameters and the company profile have no delete.
 - Extra history table: no
 - Extra activity table: no
 
@@ -93,6 +93,31 @@ Same validation and snapshot rules as the web app. Intended for LLM agent invoca
 - Extra activity table: no
 - Notes: staff may edit `value` on known keys only. No create or delete of parameter rows from the setup page. Initial rows: `currency=EUR`, `default_financial_discount_percent=10`, `default_commercial_discount_percent=0`, `default_validity_days=7`, `tubing_length_unit=m`.
 
+### company
+
+- Purpose: the issuing HVAC firm on client-facing quotes (this product: Fribila). Not a client, not a login, not FreeBiller (software contractor).
+- Written by (apps): migration seed; staff web app (setup page)
+- Fields (plus always-on):
+  - `name` — text, required
+  - `tax_number` — text, optional (Portuguese NIF, 9 digits when set)
+  - `street` — text, required
+  - `postal_code` — text, required (`NNNN-NNN`)
+  - `city` — text, required
+  - `country_code` — text, required (default `PT`)
+  - `phone_country` — fk → `countries`, required (default `PT`; UI disabled for now)
+  - `phone` — text, required (national digits only, 9 for Portugal)
+  - `phone_note` — text, optional (e.g. “Chamada para a rede fixa nacional”)
+  - `email` — text, required
+  - `contact_name` — text, optional
+  - `contact_position` — fk → `contact_positions`, optional
+  - `iban` — text, optional (Portuguese IBAN, compact `PT` + 23 digits when set)
+  - `logo` — file, optional (image under `media/company/`)
+- Uniqueness: at most one live row
+- Reason-required fields: none
+- Extra history table: no
+- Extra activity table: no
+- Notes: singleton. Staff and admin may edit; no create or delete from the setup page. Quote/PDF will read this **live** row (not snapshotted onto issued proformas). Changing name, NIF, IBAN, or logo later changes every download. Initial row from migrate: name Fribila, street Rua da Promaça nº4, postal 5000-081, city Vila Real, phone 259326314, phone note as above, email info@fribila.pt; NIF, IBAN, contact, and logo left blank for staff to fill.
+
 ### countries
 
 - Purpose: dial-code lookup for phone national numbers (billing address `country_code` on clients stays a separate field for now)
@@ -114,7 +139,7 @@ Same validation and snapshot rules as the web app. Intended for LLM agent invoca
   - `name` — text, required (e.g. CEO, Manager)
 - Uniqueness: live `name` (case-insensitive)
 - Seed set (initial): CEO, CFO, Manager, Director, Other
-- Notes: optional on clients and sites; referenced by fk from `clients.contact_position` and `sites.contact_position`
+- Notes: optional on clients, sites, and the company profile; referenced by fk from `clients.contact_position`, `sites.contact_position`, and `company.contact_position`
 
 ### clients
 

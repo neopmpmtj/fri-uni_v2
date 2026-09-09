@@ -105,6 +105,50 @@ class ContactPosition(AuditedModel):
         return self.name
 
 
+class Company(AuditedModel):
+    """Issuing HVAC firm (data-points table `company`). Singleton."""
+
+    name = models.CharField(max_length=255)
+    tax_number = models.CharField(max_length=9, blank=True)
+    street = models.CharField(max_length=255)
+    postal_code = models.CharField(max_length=8)
+    city = models.CharField(max_length=128)
+    country_code = models.CharField(max_length=2, default="PT")
+    phone_country = models.ForeignKey(
+        Country,
+        on_delete=models.PROTECT,
+        default="PT",
+        related_name="+",
+    )
+    phone = models.CharField(max_length=9)
+    phone_note = models.CharField(max_length=128, blank=True)
+    email = models.EmailField()
+    contact_name = models.CharField(max_length=255, blank=True)
+    contact_position = models.ForeignKey(
+        ContactPosition,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="+",
+    )
+    iban = models.CharField(max_length=34, blank=True)
+    logo = models.ImageField(upload_to="company/", blank=True, null=True)
+    singleton = models.BooleanField(default=True, editable=False)
+
+    class Meta:
+        verbose_name_plural = "company"
+        constraints = [
+            UniqueConstraint(
+                fields=["singleton"],
+                condition=Q(deleted_at__isnull=True, singleton=True),
+                name="uniq_live_company",
+            )
+        ]
+
+    def __str__(self):
+        return self.name
+
+
 class Client(AuditedModel):
     class Kind(models.TextChoices):
         PERSON = "person", "Person"

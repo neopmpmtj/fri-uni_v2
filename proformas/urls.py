@@ -23,6 +23,7 @@ urlpatterns = [
     path("powers/", views.power_list, name="power_list"),
     path("vat-rates/", views.vat_rate_list, name="vat_rate_list"),
     path("parameters/", views.parameter_list, name="parameter_list"),
+    path("company/", views.company_edit, name="company_edit"),
     path("tubing-lengths/", views.tubing_length_list, name="tubing_length_list"),
     path("positions/", views.contact_position_list, name="contact_position_list"),
 ]

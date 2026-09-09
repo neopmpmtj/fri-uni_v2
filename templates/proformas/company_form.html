@@ -1,0 +1,84 @@
+{% extends "work_base.html" %}
+
+{% block heading %}<span data-i18n="company">Company</span>{% endblock %}
+
+{% block content %}
+<form method="post" action="{% url 'company_edit' %}" enctype="multipart/form-data" class="work-form">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+    <label>
+        <span data-i18n="name">Name</span>
+        {{ form.name }}
+        {{ form.name.errors }}
+    </label>
+    <label>
+        <span data-i18n="taxNumber">NIF</span>
+        {{ form.tax_number }}
+        {{ form.tax_number.errors }}
+    </label>
+    <label>
+        <span data-i18n="street">Street</span>
+        {{ form.street }}
+        {{ form.street.errors }}
+    </label>
+    <label>
+        <span data-i18n="postalCode">Postal code</span>
+        {{ form.postal_code }}
+        {{ form.postal_code.errors }}
+    </label>
+    <label>
+        <span data-i18n="city">City</span>
+        {{ form.city }}
+        {{ form.city.errors }}
+    </label>
+    <label>
+        <span data-i18n="country">Country</span>
+        {{ form.country_code }}
+        {{ form.country_code.errors }}
+    </label>
+    <label>
+        <span data-i18n="phone">Phone</span>
+        <div class="phone-input">
+            <span class="phone-prefix">+351</span>
+            {{ form.phone }}
+        </div>
+        {{ form.phone.errors }}
+    </label>
+    <label>
+        <span data-i18n="phoneNote">Phone note</span>
+        {{ form.phone_note }}
+        {{ form.phone_note.errors }}
+    </label>
+    <label>
+        <span data-i18n="email">Email</span>
+        {{ form.email }}
+        {{ form.email.errors }}
+    </label>
+    <label>
+        <span data-i18n="contactName">Contact person</span>
+        {{ form.contact_name }}
+        {{ form.contact_name.errors }}
+    </label>
+    <label>
+        <span data-i18n="contactPosition">Position</span>
+        {{ form.contact_position }}
+        {{ form.contact_position.errors }}
+    </label>
+    <label>
+        <span data-i18n="iban">IBAN</span>
+        {{ form.iban }}
+        {{ form.iban.errors }}
+    </label>
+    <label>
+        <span data-i18n="logo">Logo</span>
+        {% if company.logo %}
+        <img class="logo-preview" src="{{ company.logo.url }}" alt="">
+        {% endif %}
+        {{ form.logo }}
+        {{ form.logo.errors }}
+    </label>
+    <div class="drawer-actions">
+        <button type="submit" class="btn primary" data-i18n="save">Save</button>
+    </div>
+</form>
+{% endblock %}

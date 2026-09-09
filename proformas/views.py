@@ -12,6 +12,7 @@ from . import services
 from .forms import (
     BrandForm,
     ClientForm,
+    CompanyForm,
     ContactPositionForm,
     DefaultSplitForm,
     FamilyForm,
@@ -923,6 +924,28 @@ def parameter_list(request):
             "drawer_open": drawer_open,
             "nav_active": "",
             "page_title": "Parameters",
+        },
+    )
+
+
+@login_required
+def company_edit(request):
+    company = services.get_company()
+    if request.method == "POST":
+        form = CompanyForm(request.POST, request.FILES, instance=company)
+        if form.is_valid():
+            services.save_company(form.save(commit=False), request.user)
+            return redirect("company_edit")
+    else:
+        form = CompanyForm(instance=company)
+    return render(
+        request,
+        "proformas/company_form.html",
+        {
+            "form": form,
+            "company": company,
+            "nav_active": "",
+            "page_title": "Company",
         },
     )
 
