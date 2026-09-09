@@ -19,6 +19,9 @@
 
 {% block content %}
 <p class="muted">{% if is_draft %}{{ proforma.site.client.name }} / {{ proforma.site.alias_1 }}{% else %}{{ proforma.client_name }} / {{ proforma.site_alias_1 }}{% endif %} — <span class="status-pill status-pill--{{ proforma.status }}" data-i18n="{{ proforma.status }}">{{ proforma.get_status_display }}</span>{% if is_accepted %} <span class="status-pill status-pill--accepted" data-i18n="accepted">Accepted</span>{% endif %}{% if is_rejected %} <span class="status-pill status-pill--rejected" data-i18n="rejected">Rejected</span>{% endif %}{% if is_superseded %} <span class="status-pill status-pill--superseded" data-i18n="superseded">Superseded</span>{% endif %}</p>
+{% if is_issued and proforma.issued_at %}
+<p class="muted"><span data-i18n="issuedOn">Issued on</span> {{ proforma.issued_at|date:"Y-m-d" }} — <span data-i18n="validUntil">Valid until</span> {{ proforma.valid_until|date:"Y-m-d" }}</p>
+{% endif %}
 {% if proforma.replaces_id %}
 <p class="muted"><span data-i18n="revisionOf">Revision of</span> <a href="{% url 'proforma_detail' proforma.replaces_id %}">{{ proforma.replaces.number }}</a></p>
 {% endif %}
@@ -43,6 +46,11 @@
         <span data-i18n="extraLabour">Extra labour</span>
         {{ header_form.extra_labour }}
         {{ header_form.extra_labour.errors }}
+    </label>
+    <label>
+        <span data-i18n="validityDays">Validity (days)</span>
+        {{ header_form.validity_days }}
+        {{ header_form.validity_days.errors }}
     </label>
     <label style="grid-column:1 / -1;">
         <span data-i18n="observations">Observations</span>
@@ -105,8 +113,20 @@
         <dd>{{ proforma.financial_discount_amount }}</dd>
     </div>
     <div>
-        <dt data-i18n="grandTotal">Grand total</dt>
+        <dt data-i18n="extraLabour">Extra labour</dt>
+        <dd>{{ proforma.extra_labour }}</dd>
+    </div>
+    <div>
+        <dt data-i18n="grandTotal">Total excluding VAT</dt>
         <dd>{{ proforma.grand_total }}</dd>
+    </div>
+    <div>
+        <dt data-i18n="vatAmount">VAT</dt>
+        <dd>{{ proforma.vat_amount }}</dd>
+    </div>
+    <div>
+        <dt data-i18n="totalWithVat">Total including VAT</dt>
+        <dd>{{ proforma.total_with_vat }}</dd>
     </div>
 </dl>
 

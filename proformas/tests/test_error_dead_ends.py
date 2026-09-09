@@ -85,6 +85,7 @@ def test_invalid_issue_header_shows_message(client, staff_user, site, indoor):
             "commercial_discount_percent": "0",
             "financial_discount_percent": "150",
             "extra_labour": "0",
+            "validity_days": "7",
             "observations": "",
         },
     )

@@ -164,7 +164,7 @@ First-class page. **Do not** nest sites inside the client drawer the way warehou
 ### Proforma list
 
 - Toolbar: search/filter by status (`draft` / `issued`), **New draft** (must pick a site).
-- `.grid`: number (link to work page), site/client, status pills (+ Accepted / Rejected / Superseded when set), grand total, updated, **Actions**.
+- `.grid`: number (link to work page), site/client, status pills (+ Accepted / Rejected / Superseded when set), total including VAT, updated, **Actions**.
 - **Actions:** `draft` → **Edit**. `issued` not accepted not rejected not superseded → **Open** (GET to the issued work page) plus thumbs-up (green) / thumbs-down (red) icons for accept/reject (hover label, Yes/No confirm). Do **not** supersede from the list. `issued` + accepted → **Clear accepted** only. `issued` + rejected → **Clear rejected** only. Superseded → no action.
 - Implementation: Phase 5 + supersede slice.
 
@@ -172,7 +172,7 @@ First-class page. **Do not** nest sites inside the client drawer the way warehou
 
 Analog of a warehouse **console**, not a Django form wizard.
 
-- Header **on the page** (not in a drawer): commercial discount %, financial discount %, extra labour, observations; live totals including stored extra-tubing metres when non-zero and commercial discount amount when non-zero; **Issue** / **Change** when allowed.
+- Header **on the page** (not in a drawer): commercial discount %, financial discount %, extra labour, validity (days), observations; live totals including stored extra-tubing metres when non-zero, commercial discount amount when non-zero, extra labour, net total, VAT, and total including VAT; **Issue** / **Change** when allowed. Issued header also shows issued-on and valid-until dates.
 - Lines: `.grid` grouped by system (outdoor heading, indoor rows under it; item snapshot or live catalog name while draft, qty, tubing, line total).
 - **Add split / Add default / Add multi / Add indoor = drawer.** Family hidden while only one live family. **Split:** manufacturer → design line → indoor (matched ports=1 outdoor auto-added). **Default:** room volume m³; optional extra tubing (length shown when checked, shortest catalog length pre-selected); inserts the power-band default indoor + matched split outdoor (qty 1). **Multi:** manufacturer → outdoor (`ports≥2`). **Add indoor** on an outdoor row: design line → indoor from `item_matches`. Quantity; extra tubing on indoor lines only; tubing length only when extra tubing is checked (shortest catalog length pre-selected). If the design line has a manufacturer, that control is filled and inactive.
 - **Draft:** editable; **Override checks** checkbox next to Save / Issue (persisted; skips multi occupancy rules); optional “Revision of PF-…” when `replaces` is set.
@@ -182,7 +182,7 @@ Analog of a warehouse **console**, not a Django form wizard.
 
 ### Issued quote view
 
-Document-like page for the client-facing quote (snapshots, line table, totals, observations). Still uses the **work topbar**. Print/PDF stylesheet. Language from `fu-lang` cookie on the server for PDF. Implementation: Phase 7.
+Document-like page for the client-facing quote (snapshots, issue date, valid until, line table, net totals, VAT, total including VAT, observations). Still uses the **work topbar**. Print/PDF stylesheet. Language from `fu-lang` cookie on the server for PDF. Implementation: Phase 7.
 
 ---
 

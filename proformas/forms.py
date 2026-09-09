@@ -20,6 +20,7 @@ from .models import (
 )
 from .services import (
     DISCOUNT_PARAMETER_KEYS,
+    VALIDITY_PARAMETER_KEY,
     configure_nine_digit_form_field,
     discount_percent_value,
     normalize_postal_code,
@@ -33,6 +34,7 @@ from .services import (
     validate_power_volume_band,
     validate_tax_number,
     validate_vat_code,
+    validity_days_value,
 )
 
 
@@ -260,6 +262,7 @@ class ProformaHeaderForm(forms.Form):
         max_digits=5, decimal_places=2, min_value=0, max_value=100
     )
     extra_labour = forms.DecimalField(max_digits=12, decimal_places=2, min_value=0)
+    validity_days = forms.IntegerField(min_value=1, max_value=365)
     observations = forms.CharField(required=False, widget=forms.Textarea(attrs={"rows": 3}))
     override_checks = forms.BooleanField(required=False)
 
@@ -688,6 +691,15 @@ class ParameterForm(forms.ModelForm):
         ):
             try:
                 discount_percent_value(value)
+            except ValidationError as exc:
+                self.add_error("value", exc)
+        if (
+            value is not None
+            and self.instance.pk
+            and self.instance.key == VALIDITY_PARAMETER_KEY
+        ):
+            try:
+                validity_days_value(value)
             except ValidationError as exc:
                 self.add_error("value", exc)
         return cleaned

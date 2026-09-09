@@ -60,7 +60,7 @@ ITEM_SORT_FIELDS = {
 PROFORMA_SORT_FIELDS = {
     "number": ["number"],
     "site": ["site__client__name", "site__alias_1"],
-    "total": ["grand_total"],
+    "total": ["total_with_vat"],
     "updated": ["updated_at"],
 }
 
@@ -328,6 +328,7 @@ def proforma_detail(request, pk):
             "commercial_discount_percent": proforma.commercial_discount_percent,
             "financial_discount_percent": proforma.financial_discount_percent,
             "extra_labour": proforma.extra_labour,
+            "validity_days": proforma.validity_days,
             "observations": proforma.observations,
             "override_checks": proforma.override_checks,
         }
@@ -364,6 +365,7 @@ def proforma_detail(request, pk):
                         extra_labour=header_form.cleaned_data["extra_labour"],
                         observations=header_form.cleaned_data["observations"],
                         override_checks=header_form.cleaned_data["override_checks"],
+                        validity_days=header_form.cleaned_data["validity_days"],
                     )
                     return redirect("proforma_detail", pk=proforma.pk)
             elif action == "delete_line" and is_draft:
@@ -447,6 +449,7 @@ def proforma_detail(request, pk):
                         extra_labour=header_form.cleaned_data["extra_labour"],
                         observations=header_form.cleaned_data["observations"],
                         override_checks=header_form.cleaned_data["override_checks"],
+                        validity_days=header_form.cleaned_data["validity_days"],
                     )
                     proforma.refresh_from_db()
                     services.issue_proforma(proforma, request.user)
