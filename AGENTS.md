@@ -85,7 +85,7 @@ Mark complete during session-handoff: `- [x] ... (completed YYYY-MM-DD)`
 
 ## Session
 
-**Done:** Company singleton (Fribila issuer): setup page, `get_company()`, media logo, IBAN validator, migration `0024`. Stacked on VAT/validity (`0023`). **Tests** in `proformas/tests/test_company.py`.
+**Done:** Company singleton (Fribila issuer): setup page, `get_company()`, media logo, IBAN validator, migration `0024`. Stacked on VAT/validity (`0023`). **198 tests** green.
 
 **Not done:** Quote/PDF letterhead from live company; production deploy; real prices; capacity math; site-contact snapshots on issued PDFs; heating expansion; PDF timeout/E2E/concurrency backlog items.
 
