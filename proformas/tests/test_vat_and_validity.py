@@ -16,6 +16,7 @@ from proformas.services import (
     change_proforma,
     create_draft,
     issue_proforma,
+    quote_vat_breakdown,
     update_draft,
     validity_days_value,
 )
@@ -185,7 +186,20 @@ def test_parameter_form_rejects_invalid_validity_days():
     assert "value" in form.errors
 
 
+@pytest.mark.unit
+@pytest.mark.django_db
+def test_quote_vat_breakdown_groups_lines_and_extra_labour(staff_user, site, indoor):
+    proforma = create_draft(site, staff_user, discount_percent=10, extra_labour=100)
+    add_line(proforma, indoor, staff_user, quantity=1)
+    issued = issue_proforma(proforma, staff_user)
+    rows = quote_vat_breakdown(issued)
+    assert rows
+    assert sum(row["vat_amount"] for row in rows) == issued.vat_amount
+    assert any(row["rate_percent"] == Decimal("23.00") for row in rows)
+
+
 @pytest.mark.integration
+@pytest.mark.django_db
 def test_quote_html_shows_vat_and_validity(client, staff_user, site, indoor):
     proforma = create_draft(site, staff_user, validity_days=7)
     add_line(proforma, indoor, staff_user, quantity=1)
@@ -193,7 +207,8 @@ def test_quote_html_shows_vat_and_validity(client, staff_user, site, indoor):
     client.force_login(staff_user)
     body = client.get(reverse("proforma_quote", args=[issued.pk])).content.decode()
     assert "VAT" in body
-    assert "Total including VAT" in body
+    assert "Tax base" in body
+    assert "Total of document" in body
     assert "Valid until" in body
     assert str(issued.valid_until) in body
     assert str(issued.total_with_vat) in body

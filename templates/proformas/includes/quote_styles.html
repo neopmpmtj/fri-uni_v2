@@ -1,0 +1,226 @@
+<style>
+.quote-doc {
+    color: #1c2430;
+    font-size: 0.92rem;
+    line-height: 1.35;
+}
+
+.quote-doc p {
+    margin: 0.15rem 0;
+}
+
+.quote-doc .muted {
+    color: #5b6776;
+}
+
+.quote-header {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    border: 1px solid #9aa7b6;
+    margin-bottom: 0;
+}
+
+.quote-header-col {
+    padding: 0.85rem 1rem;
+    vertical-align: top;
+}
+
+.quote-header-issuer {
+    border-right: 1px solid #9aa7b6;
+}
+
+.quote-header-issuer .quote-logo {
+    display: block;
+    max-height: 4.5rem;
+    width: auto;
+    margin-bottom: 0.5rem;
+}
+
+.quote-company-name {
+    font-weight: 700;
+    text-transform: uppercase;
+    margin-bottom: 0.35rem;
+}
+
+.quote-doc-title {
+    text-align: right;
+    margin-bottom: 0.85rem;
+    padding-bottom: 0.65rem;
+    border-bottom: 1px solid #d5dde6;
+}
+
+.quote-doc-type {
+    font-size: 0.78rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #5b6776;
+    margin: 0;
+}
+
+.quote-doc-number {
+    font-size: 1.35rem;
+    font-weight: 700;
+    margin: 0.15rem 0 0;
+}
+
+.quote-section-label {
+    font-size: 0.72rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: #5b6776;
+    margin: 0 0 0.25rem;
+}
+
+.quote-client,
+.quote-site {
+    margin-bottom: 0.65rem;
+}
+
+.quote-site {
+    margin-bottom: 0;
+}
+
+.quote-date-band {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    padding: 0.45rem 1rem;
+    border: 1px solid #9aa7b6;
+    border-top: none;
+    background: #f4f6f8;
+    font-size: 0.85rem;
+}
+
+.quote-lines {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0;
+    border: 1px solid #9aa7b6;
+    border-top: none;
+}
+
+.quote-lines th,
+.quote-lines td {
+    padding: 0.45rem 0.55rem;
+    border-bottom: 1px solid #d5dde6;
+    text-align: left;
+    vertical-align: top;
+}
+
+.quote-lines thead th {
+    background: #e8edf2;
+    font-size: 0.72rem;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color: #3d4a58;
+    border-bottom: 1px solid #9aa7b6;
+}
+
+.quote-lines tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.quote-lines .num {
+    text-align: right;
+    white-space: nowrap;
+}
+
+.quote-footer {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    border: 1px solid #9aa7b6;
+    border-top: none;
+}
+
+.quote-footer-col {
+    padding: 0.75rem 1rem;
+    vertical-align: top;
+}
+
+.quote-vat {
+    border-right: 1px solid #9aa7b6;
+}
+
+.quote-vat-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.quote-vat-table th,
+.quote-vat-table td {
+    padding: 0.35rem 0.45rem;
+    border-bottom: 1px solid #d5dde6;
+    text-align: left;
+    font-size: 0.82rem;
+}
+
+.quote-vat-table thead th {
+    background: #e8edf2;
+    font-size: 0.7rem;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color: #3d4a58;
+}
+
+.quote-vat-table .num {
+    text-align: right;
+    white-space: nowrap;
+}
+
+.quote-vat-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.quote-totals-list {
+    margin: 0;
+    padding: 0;
+}
+
+.quote-totals-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.2rem 0;
+    border-bottom: 1px dotted #d5dde6;
+}
+
+.quote-totals-row dt,
+.quote-totals-row dd {
+    margin: 0;
+    font-weight: 400;
+}
+
+.quote-totals-row dd {
+    text-align: right;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}
+
+.quote-payable {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 0.75rem;
+    padding: 0.55rem 0.75rem;
+    border: 2px solid #1c2430;
+    font-weight: 700;
+}
+
+.quote-payable strong {
+    font-size: 1.05rem;
+    font-variant-numeric: tabular-nums;
+}
+
+.quote-extra {
+    margin-top: 1rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid #d5dde6;
+}
+
+.quote-observations {
+    margin-bottom: 0.65rem;
+}
+</style>

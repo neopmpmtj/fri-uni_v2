@@ -38,7 +38,7 @@ def test_portuguese_quote_label(client, staff_user, site, indoor):
     client.force_login(staff_user)
     client.cookies["fu-lang"] = "pt"
     response = client.get(reverse("proforma_quote", args=[proforma.pk]))
-    assert "Totais" in response.content.decode()
+    assert "Base de incidência" in response.content.decode()
     pdf = client.get(reverse("proforma_pdf", args=[proforma.pk]))
     assert pdf.status_code == 200
     assert pdf["Content-Type"] == "application/pdf"
@@ -51,9 +51,9 @@ def test_portuguese_quote_label(client, staff_user, site, indoor):
         "proformas/quote_pdf.html",
         quote_template_context(proforma, "pt", absolute_logo=True),
     )
-    assert "Totais" in html
+    assert "Base de incidência" in html
     assert "IVA" in html
-    assert "Total com IVA" in html
+    assert "Total do documento" in html
     assert "Válida até" in html
     assert "Desconto comercial" not in html
     assert 'lang="pt-PT"' in html

@@ -183,7 +183,17 @@ Analog of a warehouse **console**, not a Django form wizard.
 
 ### Issued quote view
 
-Document-like page for the client-facing quote (live company letterhead, snapshots, issue date, valid until, line table, net totals, VAT, total including VAT, observations). Still uses the **work topbar**. Print/PDF stylesheet. Language from `fu-lang` cookie on the server for PDF. Implementation: Phase 7 + company letterhead slice.
+Document-like page for the client-facing quote. Still uses the **work topbar** and **Download PDF**. Language from `fu-lang` cookie on the server for PDF.
+
+Layout (on-screen HTML and PDF share `quote_body.html` + `quote_styles.html`):
+
+- **Header:** two columns — left: live company (logo, name, address, NIF, phone, email, contact); right: document title + number, then client snapshot, then site snapshot.
+- **Date band:** issued-on and valid-until only.
+- **Lines:** existing equipment/qty/unit/tubing/line-total columns; grey table header.
+- **Footer:** left — VAT breakdown by frozen rate (base + IVA amount); right — net totals and boxed **total of document** (`total_with_vat`). Header IVA is not duplicated as the hero figure.
+- **Below footer:** extra tubing metres (when set), observations, IBAN (when set on company).
+
+Implementation: Phase 7 + company letterhead slice + guia-style layout slice.
 
 ---
 

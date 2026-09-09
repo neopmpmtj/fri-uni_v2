@@ -2,6 +2,10 @@
 
 {% block heading %}{{ labels.title }} {{ proforma.number }}{% endblock %}
 
+{% block extra_head %}
+{% include "proformas/includes/quote_styles.html" %}
+{% endblock %}
+
 {% block actions %}
 <a class="btn primary" href="{% url 'proforma_pdf' proforma.pk %}" data-i18n="downloadPdf">Download PDF</a>
 {% endblock %}

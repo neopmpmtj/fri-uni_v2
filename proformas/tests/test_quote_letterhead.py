@@ -13,6 +13,7 @@ from proformas.services import (
     get_company,
     issue_proforma,
     quote_template_context,
+    quote_vat_breakdown,
     save_company,
 )
 
@@ -29,6 +30,20 @@ def _issued(staff_user, site, indoor):
 def test_display_iban_groups_characters():
     assert display_iban(VALID_IBAN) == "PT50 0002 0123 1234 5678 9015 4"
     assert display_iban("") == ""
+
+
+@pytest.mark.integration
+@pytest.mark.django_db
+def test_quote_html_two_column_header(client, staff_user, site, indoor):
+    proforma = _issued(staff_user, site, indoor)
+    client.force_login(staff_user)
+    body = client.get(reverse("proforma_quote", args=[proforma.pk])).content.decode()
+    assert "quote-header-issuer" in body
+    assert "quote-header-recipient" in body
+    assert "quote-doc-number" in body
+    assert proforma.number in body
+    assert "Fribila" in body
+    assert proforma.client_name in body
 
 
 @pytest.mark.integration

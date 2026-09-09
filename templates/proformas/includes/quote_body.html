@@ -1,83 +1,147 @@
 <article class="quote-doc">
-    <header class="quote-letterhead">
-        {% if logo_src %}
-        <img class="quote-logo" src="{{ logo_src }}" alt="">
-        {% endif %}
-        <div class="quote-issuer">
-            <p class="eyebrow">{{ company.name }}</p>
-            <p>{{ company.street }}</p>
-            <p>{{ company.postal_code }} {{ company.city }}</p>
-            {% if company.tax_number %}<p>{{ labels.taxNumber }}: {{ company.tax_number }}</p>{% endif %}
-            <p>{{ labels.phone }}: +{{ company.phone_country.dial_code }} {{ company.phone }}</p>
-            {% if company.phone_note %}<p class="muted">{{ company.phone_note }}</p>{% endif %}
-            <p>{{ labels.email }}: {{ company.email }}</p>
-            {% if company.contact_name %}
-            <p>{{ labels.contactPerson }}: {{ company.contact_name }}{% if company.contact_position %} — {{ company.contact_position.name }}{% endif %}</p>
+    <header class="quote-header">
+        <div class="quote-header-col quote-header-issuer">
+            {% if logo_src %}
+            <img class="quote-logo" src="{{ logo_src }}" alt="">
             {% endif %}
-            {% if iban_display %}<p>{{ labels.iban }}: {{ iban_display }}</p>{% endif %}
+            <div class="quote-issuer">
+                <p class="quote-company-name">{{ company.name }}</p>
+                <p>{{ company.street }}</p>
+                <p>{{ company.postal_code }} {{ company.city }}</p>
+                {% if company.tax_number %}<p>{{ labels.taxNumber }}: {{ company.tax_number }}</p>{% endif %}
+                <p>{{ labels.phone }}: +{{ company.phone_country.dial_code }} {{ company.phone }}</p>
+                {% if company.phone_note %}<p class="muted">{{ company.phone_note }}</p>{% endif %}
+                <p>{{ labels.email }}: {{ company.email }}</p>
+                {% if company.contact_name %}
+                <p>{{ labels.contactPerson }}: {{ company.contact_name }}{% if company.contact_position %} — {{ company.contact_position.name }}{% endif %}</p>
+                {% endif %}
+            </div>
+        </div>
+        <div class="quote-header-col quote-header-recipient">
+            <div class="quote-doc-title">
+                <p class="quote-doc-type">{{ labels.title }}</p>
+                <p class="quote-doc-number">{{ proforma.number }}</p>
+            </div>
+            <div class="quote-client">
+                <p class="quote-section-label">{{ labels.client }}</p>
+                <p>{{ proforma.client_name }}</p>
+                {% if proforma.client_tax_number %}<p>{{ labels.taxNumber }}: {{ proforma.client_tax_number }}</p>{% endif %}
+                {% if proforma.client_street %}<p>{{ proforma.client_street }}</p>{% endif %}
+                {% if proforma.client_postal_code or proforma.client_city %}<p>{{ proforma.client_postal_code }} {{ proforma.client_city }}</p>{% endif %}
+                {% if proforma.client_phone %}<p>{{ labels.phone }}: {{ proforma.client_phone }}</p>{% endif %}
+                {% if proforma.client_email %}<p>{{ labels.email }}: {{ proforma.client_email }}</p>{% endif %}
+            </div>
+            <div class="quote-site">
+                <p class="quote-section-label">{{ labels.site }}</p>
+                <p>{{ proforma.site_alias_1 }}{% if proforma.site_alias_2 %}, {{ proforma.site_alias_2 }}{% endif %}{% if proforma.site_alias_3 %}, {{ proforma.site_alias_3 }}{% endif %}{% if proforma.site_alias_4 %}, {{ proforma.site_alias_4 }}{% endif %}</p>
+                {% if proforma.site_street %}<p>{{ proforma.site_street }}</p>{% endif %}
+                <p>{{ proforma.site_postal_code }} {{ proforma.site_city }}</p>
+                {% if proforma.site_notes %}<p>{{ proforma.site_notes }}</p>{% endif %}
+            </div>
         </div>
     </header>
-    <h1>{{ labels.title }} {{ proforma.number }}</h1>
-    {% if proforma.issued_at %}<p>{{ labels.issuedOn }}: {{ proforma.issued_at|date:"Y-m-d" }}</p>{% endif %}
-    {% if proforma.valid_until %}<p>{{ labels.validUntil }}: {{ proforma.valid_until|date:"Y-m-d" }}</p>{% endif %}
-    <section>
-        <h2>{{ labels.client }}</h2>
-        <p>{{ proforma.client_name }}</p>
-        {% if proforma.client_tax_number %}<p>{{ labels.taxNumber }}: {{ proforma.client_tax_number }}</p>{% endif %}
-        {% if proforma.client_street %}<p>{{ proforma.client_street }}</p>{% endif %}
-        {% if proforma.client_postal_code or proforma.client_city %}<p>{{ proforma.client_postal_code }} {{ proforma.client_city }}</p>{% endif %}
-        {% if proforma.client_phone %}<p>{{ labels.phone }}: {{ proforma.client_phone }}</p>{% endif %}
-        {% if proforma.client_email %}<p>{{ labels.email }}: {{ proforma.client_email }}</p>{% endif %}
-    </section>
-    <section>
-        <h2>{{ labels.site }}</h2>
-        <p>{{ proforma.site_alias_1 }}{% if proforma.site_alias_2 %}, {{ proforma.site_alias_2 }}{% endif %}{% if proforma.site_alias_3 %}, {{ proforma.site_alias_3 }}{% endif %}{% if proforma.site_alias_4 %}, {{ proforma.site_alias_4 }}{% endif %}</p>
-        {% if proforma.site_street %}<p>{{ proforma.site_street }}</p>{% endif %}
-        <p>{{ proforma.site_postal_code }} {{ proforma.site_city }}</p>
-        {% if proforma.site_notes %}<p>{{ proforma.site_notes }}</p>{% endif %}
-    </section>
-    <table class="grid">
+
+    <div class="quote-date-band">
+        {% if proforma.issued_at %}<span>{{ labels.issuedOn }}: {{ proforma.issued_at|date:"Y-m-d" }}</span>{% endif %}
+        {% if proforma.valid_until %}<span>{{ labels.validUntil }}: {{ proforma.valid_until|date:"Y-m-d" }}</span>{% endif %}
+    </div>
+
+    <table class="quote-lines">
         <thead>
             <tr>
                 <th>{{ labels.equipment }}</th>
-                <th>{{ labels.qty }}</th>
-                <th>{{ labels.unit }}</th>
-                <th>{{ labels.tubing }}</th>
-                <th>{{ labels.lineTotal }}</th>
+                <th class="num">{{ labels.qty }}</th>
+                <th class="num">{{ labels.unit }}</th>
+                <th class="num">{{ labels.tubing }}</th>
+                <th class="num">{{ labels.lineTotal }}</th>
             </tr>
         </thead>
         <tbody>
             {% for line in lines %}
             <tr>
                 <td>{% if line.parent_line_id %}— {% endif %}{{ line.brand_name }} {{ line.family_name }} {{ line.sub_family_name }} {% if line.kind == "indoor" %}{{ labels.kindIndoor }}{% elif line.kind == "outdoor" %}{{ labels.kindOutdoor }}{% else %}{{ line.kind }}{% endif %} {{ line.power_value }} {{ line.power_unit }}</td>
-                <td>{{ line.quantity }}</td>
-                <td>{{ line.unit_price }}</td>
-                <td>{% if line.extra_tubing %}{{ line.tubing_length_value }} m{% else %}—{% endif %}</td>
-                <td>{{ line.line_total }}</td>
+                <td class="num">{{ line.quantity }}</td>
+                <td class="num">{{ line.unit_price }}</td>
+                <td class="num">{% if line.extra_tubing %}{{ line.tubing_length_value }} m{% else %}—{% endif %}</td>
+                <td class="num">{{ line.line_total }}</td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
-    <h2>{{ labels.totals }}</h2>
-    <dl class="totals">
-        <div><dt>{{ labels.equipmentSubtotal }}</dt><dd>{{ proforma.equipment_subtotal }}</dd></div>
-        <div><dt>{{ labels.tubingTotal }}</dt><dd>{{ proforma.tubing_total }}</dd></div>
+
+    <div class="quote-footer">
+        <div class="quote-footer-col quote-vat">
+            <table class="quote-vat-table">
+                <thead>
+                    <tr>
+                        <th>{{ labels.vatRate }}</th>
+                        <th class="num">{{ labels.vatBase }}</th>
+                        <th class="num">{{ labels.vatAmountCol }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in vat_breakdown %}
+                    <tr>
+                        <td>{{ row.rate_percent }}%</td>
+                        <td class="num">{{ row.tax_base }}</td>
+                        <td class="num">{{ row.vat_amount }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="3">—</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="quote-footer-col quote-totals">
+            <dl class="quote-totals-list">
+                <div class="quote-totals-row">
+                    <dt>{{ labels.equipmentSubtotal }}</dt>
+                    <dd>{{ proforma.equipment_subtotal }}</dd>
+                </div>
+                <div class="quote-totals-row">
+                    <dt>{{ labels.tubingTotal }}</dt>
+                    <dd>{{ proforma.tubing_total }}</dd>
+                </div>
+                {% if proforma.commercial_discount_amount %}
+                <div class="quote-totals-row">
+                    <dt>{{ labels.commercialDiscount }}</dt>
+                    <dd>{{ proforma.commercial_discount_amount }}</dd>
+                </div>
+                {% endif %}
+                <div class="quote-totals-row">
+                    <dt>{{ labels.financialDiscount }}</dt>
+                    <dd>{{ proforma.financial_discount_amount }}</dd>
+                </div>
+                <div class="quote-totals-row">
+                    <dt>{{ labels.extraLabour }}</dt>
+                    <dd>{{ proforma.extra_labour }}</dd>
+                </div>
+                <div class="quote-totals-row">
+                    <dt>{{ labels.grandTotal }}</dt>
+                    <dd>{{ proforma.grand_total }}</dd>
+                </div>
+            </dl>
+            <div class="quote-payable">
+                <span>{{ labels.documentTotal }}</span>
+                <strong>{{ proforma.total_with_vat }}</strong>
+            </div>
+        </div>
+    </div>
+
+    <div class="quote-extra">
         {% if proforma.extra_tubing_metres %}
-        <div><dt>{{ labels.extraTubingMetres }}</dt><dd>{{ proforma.extra_tubing_metres }} m</dd></div>
+        <p>{{ labels.extraTubingMetres }}: {{ proforma.extra_tubing_metres }} m</p>
         {% endif %}
-        {% if proforma.commercial_discount_amount %}
-        <div><dt>{{ labels.commercialDiscount }}</dt><dd>{{ proforma.commercial_discount_amount }}</dd></div>
+        {% if proforma.observations %}
+        <div class="quote-observations">
+            <p class="quote-section-label">{{ labels.observations }}</p>
+            <p>{{ proforma.observations }}</p>
+        </div>
         {% endif %}
-        <div><dt>{{ labels.financialDiscount }}</dt><dd>{{ proforma.financial_discount_amount }}</dd></div>
-        <div><dt>{{ labels.extraLabour }}</dt><dd>{{ proforma.extra_labour }}</dd></div>
-        <div><dt>{{ labels.grandTotal }}</dt><dd>{{ proforma.grand_total }}</dd></div>
-        <div><dt>{{ labels.vatAmount }}</dt><dd>{{ proforma.vat_amount }}</dd></div>
-        <div><dt>{{ labels.totalWithVat }}</dt><dd>{{ proforma.total_with_vat }}</dd></div>
-    </dl>
-    {% if proforma.observations %}
-    <section>
-        <h2>{{ labels.observations }}</h2>
-        <p>{{ proforma.observations }}</p>
-    </section>
-    {% endif %}
+        {% if iban_display %}
+        <p>{{ labels.iban }}: {{ iban_display }}</p>
+        {% endif %}
+    </div>
 </article>

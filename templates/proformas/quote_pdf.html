@@ -3,16 +3,10 @@
 <head>
     <meta charset="utf-8">
     <style>
-        body { font-family: sans-serif; color: #1c2430; }
-        h1, h2 { margin: 0 0 0.5rem; }
-        table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
-        th, td { text-align: left; padding: 0.4rem 0.5rem; border-bottom: 1px solid #d5dde6; }
-        .eyebrow { color: #5b6776; text-transform: uppercase; font-size: 0.8rem; }
-        .muted { color: #5b6776; }
-        .quote-letterhead { display: flex; gap: 1rem; align-items: flex-start; margin-bottom: 1.25rem; }
-        .quote-logo { max-height: 72px; width: auto; }
-        .quote-issuer p { margin: 0.15rem 0; }
+        @page { margin: 1.2cm; }
+        body { font-family: sans-serif; color: #1c2430; margin: 0; }
     </style>
+    {% include "proformas/includes/quote_styles.html" %}
 </head>
 <body>
 {% include "proformas/includes/quote_body.html" %}

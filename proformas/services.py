@@ -181,6 +181,50 @@ def display_iban(value):
     return " ".join(compact[i : i + 4] for i in range(0, len(compact), 4))
 
 
+def quote_vat_breakdown(proforma):
+    """Group frozen line VAT by rate; extra-labour IVA is the header remainder."""
+    by_rate = {}
+    line_vat_total = Decimal("0")
+    for line in proforma.lines.all():
+        rate = line.vat_rate if line.vat_rate is not None else Decimal("0")
+        vat_amt = line.vat_amount or Decimal("0")
+        line_vat_total += vat_amt
+        bucket = by_rate.setdefault(
+            rate, {"vat_amount": Decimal("0"), "tax_base": Decimal("0")}
+        )
+        bucket["vat_amount"] += vat_amt
+        if rate > 0:
+            bucket["tax_base"] += money(vat_amt / rate)
+
+    header_vat = proforma.vat_amount or Decimal("0")
+    extra_labour_vat = money(header_vat - line_vat_total)
+    if extra_labour_vat:
+        extra_labour = proforma.extra_labour or Decimal("0")
+        if extra_labour > 0:
+            labour_rate = (extra_labour_vat / extra_labour).quantize(Decimal("0.0001"))
+        else:
+            labour_rate = Decimal("0")
+        bucket = by_rate.setdefault(
+            labour_rate, {"vat_amount": Decimal("0"), "tax_base": Decimal("0")}
+        )
+        bucket["vat_amount"] += extra_labour_vat
+        bucket["tax_base"] += extra_labour
+
+    rows = []
+    for rate, data in by_rate.items():
+        if data["vat_amount"] or data["tax_base"]:
+            rows.append(
+                {
+                    "rate": rate,
+                    "rate_percent": (rate * Decimal("100")).quantize(Decimal("0.01")),
+                    "tax_base": money(data["tax_base"]),
+                    "vat_amount": money(data["vat_amount"]),
+                }
+            )
+    rows.sort(key=lambda row: row["rate"], reverse=True)
+    return rows
+
+
 def quote_template_context(proforma, lang, *, absolute_logo=False):
     company = get_company()
     logo_src = ""
@@ -199,6 +243,7 @@ def quote_template_context(proforma, lang, *, absolute_logo=False):
         "company": company,
         "logo_src": logo_src,
         "iban_display": display_iban(company.iban),
+        "vat_breakdown": quote_vat_breakdown(proforma),
         "html_lang": "pt-PT" if lang == "pt" else "en",
     }
 

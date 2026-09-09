@@ -573,9 +573,9 @@ label[hidden] {
 
 .quote-doc {
     background: var(--surface);
-    padding: 2rem;
-    border-radius: var(--radius-card);
-    box-shadow: var(--shadow);
+    padding: 0;
+    border-radius: 0;
+    box-shadow: none;
 }
 
 .quote-letterhead {
