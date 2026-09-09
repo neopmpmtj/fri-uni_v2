@@ -102,6 +102,7 @@ def test_issue_applies_unsaved_header(client, staff_user, site, indoor):
             "commercial_discount_percent": "0",
             "financial_discount_percent": "5",
             "extra_labour": "20.00",
+            "validity_days": "7",
             "observations": "locked in",
         },
     )

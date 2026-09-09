@@ -514,6 +514,9 @@ class Proforma(AuditedModel):
         max_digits=5, decimal_places=2, default=0
     )
     financial_discount_percent = models.DecimalField(max_digits=5, decimal_places=2)
+    validity_days = models.PositiveSmallIntegerField(default=7)
+    issued_at = models.DateTimeField(null=True, blank=True)
+    valid_until = models.DateField(null=True, blank=True)
     extra_labour = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     observations = models.TextField(blank=True)
     override_checks = models.BooleanField(default=False)
@@ -533,6 +536,12 @@ class Proforma(AuditedModel):
         max_digits=12, decimal_places=2, null=True, blank=True
     )
     grand_total = models.DecimalField(
+        max_digits=12, decimal_places=2, null=True, blank=True
+    )
+    vat_amount = models.DecimalField(
+        max_digits=12, decimal_places=2, null=True, blank=True
+    )
+    total_with_vat = models.DecimalField(
         max_digits=12, decimal_places=2, null=True, blank=True
     )
     client_name = models.CharField(max_length=255, blank=True)
@@ -616,6 +625,14 @@ class ProformaLine(AuditedModel):
     power_unit = models.CharField(max_length=32, blank=True)
     tubing_length_value = models.DecimalField(
         max_digits=8, decimal_places=2, null=True, blank=True
+    )
+    vat_code = models.CharField(max_length=32, blank=True)
+    vat_label = models.CharField(max_length=64, blank=True)
+    vat_rate = models.DecimalField(
+        max_digits=5, decimal_places=4, null=True, blank=True
+    )
+    vat_amount = models.DecimalField(
+        max_digits=12, decimal_places=2, null=True, blank=True
     )
 
     def __str__(self):

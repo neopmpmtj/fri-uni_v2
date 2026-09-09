@@ -45,6 +45,7 @@ def test_change_creates_draft_with_links(issued, staff_user):
     assert issued.lines.first().unit_price == frozen_unit
     assert new.commercial_discount_percent == issued.commercial_discount_percent
     assert new.financial_discount_percent == issued.financial_discount_percent
+    assert new.validity_days == issued.validity_days
     assert new.lines.count() == issued.lines.count()
     assert ActivityLog.objects.filter(action="change_proforma").exists()
 

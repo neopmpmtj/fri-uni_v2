@@ -97,6 +97,7 @@ PARAMETERS = (
     ("currency", "EUR"),
     ("default_financial_discount_percent", "10"),
     ("default_commercial_discount_percent", "0"),
+    ("default_validity_days", "7"),
     ("tubing_length_unit", "m"),
 )
 VAT_RATES = (

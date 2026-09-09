@@ -29,6 +29,7 @@ class Command(BaseCommand):
         )
         parser.add_argument("--discount-percent", default=None)
         parser.add_argument("--commercial-discount-percent", default=None)
+        parser.add_argument("--validity-days", default=None)
         parser.add_argument("--extra-labour", default=None)
         parser.add_argument("--observations", default="")
         parser.add_argument("--issue", action="store_true")
@@ -55,6 +56,8 @@ class Command(BaseCommand):
                 draft_kwargs["commercial_discount_percent"] = Decimal(
                     str(options["commercial_discount_percent"])
                 )
+            if options["validity_days"] is not None:
+                draft_kwargs["validity_days"] = options["validity_days"]
             if options["extra_labour"] is not None:
                 draft_kwargs["extra_labour"] = Decimal(str(options["extra_labour"]))
         except (InvalidOperation, TypeError) as exc:

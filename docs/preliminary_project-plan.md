@@ -643,3 +643,26 @@ None.
 ### Open questions still open
 
 None.
+
+## Update 2026-09-09 — VAT on quotes and validity window
+
+### What changed
+
+- Catalog list prices stay **net (sem IVA)**. Quote math applies item VAT after commercial then financial discounts (equipment allocated by line share). Extra tubing uses that indoor line’s item rate. Extra labour uses the default `vat_rates` row (`is_default`, typically 23%).
+- Header frozen amounts: `vat_amount` and `total_with_vat` (client-facing payable). `grand_total` remains net.
+- Line snapshots at issue: `vat_code`, `vat_label`, `vat_rate`, `vat_amount`.
+- Quote validity: parameter `default_validity_days` (7, migration-seeded, not `seed_demo`). Draft copies `validity_days` (overridable, 1–365). Issue freezes `issued_at` and `valid_until` (Lisbon calendar date + days). Display only; no auto-reject. **Change** copies days; new issue gets a new window.
+- On-screen quote HTML and PDF show issued on, valid until, IVA, and total com IVA. List money column is `total_with_vat`. CLI `--validity-days` optional.
+
+### Apps added/removed
+
+None.
+
+### Decisions
+
+- Payable is `total_with_vat`. Company default validity lives on `parameters`, per-quote override on `proformas.validity_days`.
+- Still not an official fatura (no ATCUD/QR). Letterhead remains a later slice.
+
+### Open questions still open
+
+None.

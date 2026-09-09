@@ -50,6 +50,8 @@ def test_discount_ignores_tubing_and_labour(staff_user, site, indoor, tubing):
     assert proforma.commercial_discount_amount == Decimal("0.00")
     assert proforma.financial_discount_amount == Decimal("105.00")
     assert proforma.grand_total == Decimal("1035.00")
+    assert proforma.vat_amount == Decimal("238.05")
+    assert proforma.total_with_vat == Decimal("1273.05")
 
 
 def test_commercial_then_financial_on_equipment_remainder(
@@ -75,6 +77,7 @@ def test_commercial_then_financial_on_equipment_remainder(
     assert proforma.commercial_discount_amount == Decimal("105.00")
     assert proforma.financial_discount_amount == Decimal("94.50")
     assert proforma.grand_total == Decimal("940.50")
+    assert proforma.total_with_vat == proforma.grand_total + proforma.vat_amount
 
 
 def test_extra_tubing_metres_sums_quantity_times_length(staff_user, site, indoor, tubing):

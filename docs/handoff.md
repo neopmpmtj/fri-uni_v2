@@ -1,11 +1,11 @@
 # Session handoff
 
-> **Last updated:** 2026-09-08 10:10 WEST (Europe/Lisbon)  
+> **Last updated:** 2026-09-09 11:00 WEST (Europe/Lisbon)  
 > Replace with the current date and time whenever you edit this file.
 
 ## Project
 
-Internal back office for one HVAC company (slice of “universe”). Staff create **proforma invoices**: client-facing quotes showing equipment to be installed and what it will cost, including commercial and financial discounts. Not an official finance document.
+Internal back office for one HVAC company (slice of “universe”). Staff create **proforma invoices**: client-facing quotes showing equipment to be installed and what it will cost, including commercial and financial discounts and IVA. Not an official finance document.
 
 **MVP:** email+password login → dashboard (pick EN/PT once) → clients/sites (list + drawer) → draft proforma (work page + line drawer) → issue/lock snapshots → on-screen quote + PDF download. Catalog is staff pages (Items daily; Families / Design lines / Manufacturers / VAT / Parameters / Tubing setup). CLI: `create_proforma`.
 
@@ -17,11 +17,15 @@ Staff app is **`proformas`** (`accounts` is User/login only). Playbook: [`docs/p
 
 Catalog: **family → indoor design line (`sub_families`) → indoor item**; outdoor items have **no** design line (brand + power + `max_indoor_ports` + code). Pairing is **`item_matches`**. Quote lines group under the outdoor (`parent_line`). Sales price is edited only on the manufacturer pricelist (reason required). Django admin is users and audit only.
 
-Do not run `seed_demo` in production. Fresh local DB: `rm -f db.sqlite3`, then `migrate` and `seed_demo`. Restart `runserver` after schema changes. After pulling this tree, run **`migrate`** (migration `0022`).
+Do not run `seed_demo` in production. Fresh local DB: `rm -f db.sqlite3`, then `migrate` and `seed_demo`. Restart `runserver` after schema changes. After pulling this tree, run **`migrate`** (migration `0023`).
 
 **Two tables vs one:** `clients` / `sites` are different nouns (quote → site). Indoor/outdoor stay one `items` table + `item_matches`. See [`data-points.md`](data-points.md) and preliminary-plan update 2026-09-07.
 
 **Proforma document life:** `draft` | `issued` only. **Accepted** and **rejected** are overlays (`accepted_at` / `rejected_at`), mutually exclusive (clear one before marking the other). **Change** is blocked when accepted or rejected (or already superseded). There is no `cancelled` status (legacy rows mapped to `issued` in `0016`).
+
+**Money:** list prices and `grand_total` are net (sem IVA). `vat_amount` / `total_with_vat` are the IVA layer; the list and quote payable is `total_with_vat`. Extra labour IVA uses the default `vat_rates` row.
+
+**Validity:** company default `parameters.default_validity_days` (7). Draft `validity_days` is overridable. Issue freezes `issued_at` and `valid_until` (Lisbon date + days). Display only.
 
 **AC systems:** **Split** = 1 outdoor (`ports=1`) + 1 indoor (staff start from the indoor; default match auto-adds the outdoor). **Default** = type room m³ → `powers` band → that row’s default indoor + matched 1-port outdoor (qty 1). **Multi** = 1 outdoor (`ports≥2`) + 2+ indoors (staff start from the outdoor, then Add indoor). Extra tubing stays on indoor runs. Editing a 1-port outdoor line uses the outdoor drawer (not indoor/design-line). **Override checks** on the draft header skips multi indoor-count rules (add past ports; issue without 2..ports). Split stays exact-one indoor.
 
@@ -29,12 +33,14 @@ Do not run `seed_demo` in production. Fresh local DB: `rm -f db.sqlite3`, then `
 
 ## Done (this session)
 
-- **Financial vs commercial discounts:** renamed `default_upfront_discount_percent` / `upfront_discount_percent` / `discount_amount` to financial names; added commercial percent + amount; sequential math (commercial first, then financial on remainder, equipment only); quote/PDF hides commercial when amount is 0; CLI `--discount-percent` is financial, `--commercial-discount-percent` added; Change copies both. Migration `0022`.
-- **Tests:** **170 passing** (`pytest`)
+- **VAT on quotes:** line snapshots; header `vat_amount` + `total_with_vat`; sequential discounts then IVA (equipment share + tubing at item rate; extra labour at default VAT); quote HTML/PDF and list payable.
+- **Validity:** parameter `default_validity_days=7` (migration, not seed_demo); per-draft override; `issued_at` / `valid_until` frozen at issue.
+- **Tests:** **185 passing** (`pytest`)
+- Migration `0023`.
 
 ## Done (earlier)
 
-- Code review 2026-09-08; M1 stale `default_indoor`; error-dead-ends audit; PDF/seed hardening; Add default volume split + extra tubing; override checks; AC pairing; Phases 1–8; catalog slice; VAT; client/site identity; Change/supersede
+- Financial vs commercial discounts; code review 2026-09-08; M1 stale `default_indoor`; error-dead-ends audit; PDF/seed hardening; Add default volume split + extra tubing; override checks; AC pairing; Phases 1–8; catalog slice; VAT rates on items; client/site identity; Change/supersede
 
 ## Not done
 
@@ -42,8 +48,7 @@ Do not run `seed_demo` in production. Fresh local DB: `rm -f db.sqlite3`, then `
 - Company letterhead on PDF
 - Real catalog prices
 - Indoor BTU vs outdoor capacity math
-- VAT on proforma line math / snapshots / PDF
-- Proforma snapshot fields for site/client contact on issued PDFs
+- Proforma snapshot fields for site contact on issued PDFs
 - Email send / stored PDFs / Google OAuth / dark theme
 - Enable non-PT phone countries in UI (table seeded; PT only disabled selector)
 - Heating expansion (backlog in project-plan)
@@ -51,7 +56,7 @@ Do not run `seed_demo` in production. Fresh local DB: `rm -f db.sqlite3`, then `
 
 ## Next
 
-1. VAT on quote math / PDF — product backlog
+1. Company letterhead on PDF — product backlog
 2. Production deploy when ready
 
 ## Commands

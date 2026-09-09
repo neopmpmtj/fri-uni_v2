@@ -2,6 +2,8 @@
     <header>
         <p class="eyebrow">{{ company_name }}</p>
         <h1>{{ labels.title }} {{ proforma.number }}</h1>
+        {% if proforma.issued_at %}<p>{{ labels.issuedOn }}: {{ proforma.issued_at|date:"Y-m-d" }}</p>{% endif %}
+        {% if proforma.valid_until %}<p>{{ labels.validUntil }}: {{ proforma.valid_until|date:"Y-m-d" }}</p>{% endif %}
     </header>
     <section>
         <h2>{{ labels.client }}</h2>
@@ -54,6 +56,8 @@
         <div><dt>{{ labels.financialDiscount }}</dt><dd>{{ proforma.financial_discount_amount }}</dd></div>
         <div><dt>{{ labels.extraLabour }}</dt><dd>{{ proforma.extra_labour }}</dd></div>
         <div><dt>{{ labels.grandTotal }}</dt><dd>{{ proforma.grand_total }}</dd></div>
+        <div><dt>{{ labels.vatAmount }}</dt><dd>{{ proforma.vat_amount }}</dd></div>
+        <div><dt>{{ labels.totalWithVat }}</dt><dd>{{ proforma.total_with_vat }}</dd></div>
     </dl>
     {% if proforma.observations %}
     <section>

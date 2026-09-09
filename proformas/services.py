@@ -1,5 +1,6 @@
 import json
 import re
+from datetime import timedelta
 from decimal import Decimal, InvalidOperation
 
 from django.core.exceptions import PermissionDenied, ValidationError
@@ -79,6 +80,7 @@ KNOWN_PARAMETER_KEYS = (
     "currency",
     "default_financial_discount_percent",
     "default_commercial_discount_percent",
+    "default_validity_days",
     "tubing_length_unit",
 )
 
@@ -86,6 +88,11 @@ DISCOUNT_PARAMETER_KEYS = (
     "default_financial_discount_percent",
     "default_commercial_discount_percent",
 )
+
+VALIDITY_PARAMETER_KEY = "default_validity_days"
+DEFAULT_VALIDITY_DAYS = 7
+MIN_VALIDITY_DAYS = 1
+MAX_VALIDITY_DAYS = 365
 
 _VALID_NIF_FIRST_DIGITS = set("1235689")
 
@@ -219,6 +226,16 @@ def labour_value(value):
     return amount
 
 
+def validity_days_value(value):
+    try:
+        days = int(str(value).strip())
+    except (TypeError, ValueError) as exc:
+        raise ValidationError("Enter a valid number of days.") from exc
+    if days < MIN_VALIDITY_DAYS or days > MAX_VALIDITY_DAYS:
+        raise ValidationError("Validity must be between 1 and 365 days.")
+    return days
+
+
 def require_draft(proforma):
     if proforma.status != Proforma.Status.DRAFT:
         raise ValidationError("Only draft proformas can be edited.")
@@ -242,9 +259,65 @@ def next_proforma_number(year=None):
 NUMBER_ALLOCATION_ATTEMPTS = 5
 
 
+def _allocate_discounted_equipment(lines, equipment, discounted_equipment):
+    if equipment <= 0:
+        return [money(0) for _ in lines]
+    last_with_eq = None
+    for index, line in enumerate(lines):
+        if Decimal(line.quantity) * line.unit_price:
+            last_with_eq = index
+    allocations = [money(0) for _ in lines]
+    assigned = money(0)
+    for index, line in enumerate(lines):
+        line_eq = Decimal(line.quantity) * line.unit_price
+        if line_eq == 0:
+            continue
+        if index == last_with_eq:
+            allocations[index] = money(discounted_equipment - assigned)
+        else:
+            part = money(discounted_equipment * line_eq / equipment)
+            allocations[index] = part
+            assigned += part
+    return allocations
+
+
+def _apply_line_and_labour_vat(proforma, lines, discounted_equipment, equipment):
+    allocations = _allocate_discounted_equipment(
+        lines, equipment, discounted_equipment
+    )
+    vat_total = money(0)
+    for line, allocated in zip(lines, allocations):
+        vat = line.item.vat_rate
+        tubing_money = money(Decimal(line.quantity) * line.tubing_amount)
+        line_vat = money((allocated + tubing_money) * vat.rate)
+        line.vat_code = vat.code
+        line.vat_label = vat.label
+        line.vat_rate = vat.rate
+        line.vat_amount = line_vat
+        line.save(
+            update_fields=[
+                "vat_code",
+                "vat_label",
+                "vat_rate",
+                "vat_amount",
+                "updated_at",
+            ]
+        )
+        vat_total += line_vat
+    labour = money(proforma.extra_labour or 0)
+    if labour:
+        default_vat = VatRate.objects.filter(is_default=True).first()
+        if default_vat is None:
+            raise ValidationError("A default VAT rate is required for extra labour.")
+        vat_total += money(labour * default_vat.rate)
+    return money(vat_total)
+
+
 def recompute_draft_totals(proforma):
     require_draft(proforma)
-    lines = list(proforma.lines.select_related("tubing_length"))
+    lines = list(
+        proforma.lines.select_related("tubing_length", "item__vat_rate")
+    )
     equipment = sum((line.quantity * line.unit_price for line in lines), Decimal("0.00"))
     tubing = sum((line.quantity * line.tubing_amount for line in lines), Decimal("0.00"))
     metres = Decimal("0.00")
@@ -260,13 +333,19 @@ def recompute_draft_totals(proforma):
     financial = money(
         after_commercial * proforma.financial_discount_percent / Decimal("100")
     )
-    grand = money(after_commercial - financial + tubing + proforma.extra_labour)
+    discounted_equipment = after_commercial - financial
+    grand = money(discounted_equipment + tubing + proforma.extra_labour)
+    vat_total = _apply_line_and_labour_vat(
+        proforma, lines, discounted_equipment, equipment
+    )
     proforma.equipment_subtotal = equipment
     proforma.tubing_total = tubing
     proforma.extra_tubing_metres = metres
     proforma.commercial_discount_amount = commercial
     proforma.financial_discount_amount = financial
     proforma.grand_total = grand
+    proforma.vat_amount = vat_total
+    proforma.total_with_vat = money(grand + vat_total)
     proforma.save(
         update_fields=[
             "equipment_subtotal",
@@ -275,6 +354,8 @@ def recompute_draft_totals(proforma):
             "commercial_discount_amount",
             "financial_discount_amount",
             "grand_total",
+            "vat_amount",
+            "total_with_vat",
             "updated_at",
         ]
     )
@@ -289,6 +370,7 @@ def create_draft(
     commercial_discount_percent=None,
     extra_labour=0,
     observations="",
+    validity_days=None,
 ):
     if discount_percent is None:
         discount_percent = get_parameter("default_financial_discount_percent", "10")
@@ -296,9 +378,14 @@ def create_draft(
         commercial_discount_percent = get_parameter(
             "default_commercial_discount_percent", "0"
         )
+    if validity_days is None:
+        validity_days = get_parameter(
+            VALIDITY_PARAMETER_KEY, str(DEFAULT_VALIDITY_DAYS)
+        )
     financial = discount_percent_value(discount_percent)
     commercial = discount_percent_value(commercial_discount_percent)
     labour = labour_value(extra_labour or 0)
+    days = validity_days_value(validity_days)
     last_error = None
     for _ in range(NUMBER_ALLOCATION_ATTEMPTS):
         try:
@@ -309,6 +396,7 @@ def create_draft(
                     status=Proforma.Status.DRAFT,
                     financial_discount_percent=financial,
                     commercial_discount_percent=commercial,
+                    validity_days=days,
                     extra_labour=labour,
                     observations=observations or "",
                     created_by=user,
@@ -337,6 +425,7 @@ def update_draft(
     extra_labour=None,
     observations=None,
     override_checks=None,
+    validity_days=None,
 ):
     require_draft(proforma)
     if financial_discount_percent is not None:
@@ -353,6 +442,8 @@ def update_draft(
         proforma.observations = observations
     if override_checks is not None:
         proforma.override_checks = bool(override_checks)
+    if validity_days is not None:
+        proforma.validity_days = validity_days_value(validity_days)
     proforma.updated_by = user
     proforma.save()
     return recompute_draft_totals(proforma)
@@ -1151,7 +1242,11 @@ def issue_proforma(proforma, user):
         proforma.site_city = site.city or ""
         proforma.site_notes = site.notes or ""
         for line in proforma.lines.select_related(
-            "item__sub_family__family", "item__brand", "item__power", "tubing_length"
+            "item__sub_family__family",
+            "item__brand",
+            "item__power",
+            "item__vat_rate",
+            "tubing_length",
         ):
             line.brand_name = line.item.brand.name
             line.family_name = _item_family_name(line.item)
@@ -1163,8 +1258,17 @@ def issue_proforma(proforma, user):
             line.tubing_length_value = (
                 line.tubing_length.length if line.tubing_length_id else None
             )
+            vat = line.item.vat_rate
+            line.vat_code = vat.code
+            line.vat_label = vat.label
+            line.vat_rate = vat.rate
             line.updated_by = user
             line.save()
+        now = timezone.now()
+        proforma.issued_at = now
+        proforma.valid_until = timezone.localdate(now) + timedelta(
+            days=int(proforma.validity_days)
+        )
         proforma.status = Proforma.Status.ISSUED
         proforma.updated_by = user
         proforma.save()
@@ -1285,6 +1389,7 @@ def change_proforma(proforma, user):
             commercial_discount_percent=proforma.commercial_discount_percent,
             extra_labour=proforma.extra_labour,
             observations=proforma.observations,
+            validity_days=proforma.validity_days,
         )
         new.replaces = proforma
         new.override_checks = proforma.override_checks

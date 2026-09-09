@@ -85,9 +85,9 @@ Mark complete during session-handoff: `- [x] ... (completed YYYY-MM-DD)`
 
 ## Session
 
-**Done:** Financial vs commercial discounts (rename upfront → financial; sequential math; migration `0022`). **170 tests** green.
+**Done:** VAT on quote math/PDF (`vat_amount`, `total_with_vat`); quote validity (`default_validity_days=7`, per-draft override, freeze `issued_at`/`valid_until`). Migration `0023`. **185 tests** green.
 
-**Not done:** Production deploy; letterhead; real prices; capacity math; VAT on quote math/PDF; contact fields on issued-quote snapshots/PDF; heating expansion; PDF timeout/E2E/concurrency backlog items.
+**Not done:** Production deploy; letterhead; real prices; capacity math; site-contact snapshots on issued PDFs; heating expansion; PDF timeout/E2E/concurrency backlog items.
 
-**Next:** VAT on quote math / PDF. Read [`docs/handoff.md`](docs/handoff.md).
+**Next:** Company letterhead on PDF. Read [`docs/handoff.md`](docs/handoff.md).
 

@@ -35,6 +35,7 @@ Optional flags:
 
 - `--discount-percent` — financial discount percent (parameter default if omitted)
 - `--commercial-discount-percent` — commercial discount percent (parameter default if omitted)
+- `--validity-days` — quote validity in days from issue (parameter default if omitted)
 - `--extra-labour`
 - `--observations`
 - `--issue` — issue immediately after create
@@ -84,12 +85,13 @@ Same validation and snapshot rules as the web app. Intended for LLM agent invoca
   - `currency` — company currency (e.g. EUR); all money fields use this
   - `default_financial_discount_percent` — number as text; default financial % for new drafts; changing it does not rewrite locked proformas
   - `default_commercial_discount_percent` — number as text; default commercial % for new drafts; changing it does not rewrite locked proformas
+  - `default_validity_days` — integer as text; default quote validity in days from issue for new drafts; changing it does not rewrite existing drafts or locked proformas
   - `tubing_length_unit` — `m` (metres); documents the unit for `tubing_lengths.length`
 - Uniqueness: live `key`
 - Reason-required: no
 - Extra history table: no
 - Extra activity table: no
-- Notes: staff may edit `value` on known keys only. No create or delete of parameter rows from the setup page. Initial rows: `currency=EUR`, `default_financial_discount_percent=10`, `default_commercial_discount_percent=0`, `tubing_length_unit=m`.
+- Notes: staff may edit `value` on known keys only. No create or delete of parameter rows from the setup page. Initial rows: `currency=EUR`, `default_financial_discount_percent=10`, `default_commercial_discount_percent=0`, `default_validity_days=7`, `tubing_length_unit=m`.
 
 ### countries
 
@@ -238,7 +240,7 @@ Same validation and snapshot rules as the web app. Intended for LLM agent invoca
 - Reason-required fields: none
 - Extra history table: no
 - Extra activity table: no
-- Notes: start with Portugal IVA: 23% (default), 13%, 6%, Exempt (0%). New items pre-select the default rate. Quoting does not apply VAT yet; the FK is stored so a later slice can snapshot it onto lines. Do not confuse with official invoice / payment / tax tables (still rejected).
+- Notes: start with Portugal IVA: 23% (default), 13%, 6%, Exempt (0%). New items pre-select the default rate. Quote math applies the item’s rate (and the default rate on extra labour). At issue the rate is snapshotted onto lines. Do not confuse with official invoice / payment / tax tables (still rejected).
 
 ### items
 
@@ -259,7 +261,7 @@ Same validation and snapshot rules as the web app. Intended for LLM agent invoca
 - Reason-required fields: `list_price`
 - Extra history table: no (locked lines hold the snapshot; no catalog price-history screen)
 - Extra activity table: no
-- Notes: pairing is `item_matches`, not a catalog FK from indoor to outdoor and not a second items table (`interior.exterior_id` stays rejected). Indoor and outdoor stay one table (same noun, `kind`). Room-volume auto-pick lives on `powers` (band + default indoor), not on the item. New items start at sales price 0 until priced on the manufacturer page. VAT is identity on the item; line totals do not include VAT yet. When the indoor design line has a manufacturer, the item’s `brand` is copied from that design line and cannot be chosen independently.
+- Notes: pairing is `item_matches`, not a catalog FK from indoor to outdoor and not a second items table (`interior.exterior_id` stays rejected). Indoor and outdoor stay one table (same noun, `kind`). Room-volume auto-pick lives on `powers` (band + default indoor), not on the item. New items start at sales price 0 until priced on the manufacturer page. List prices are net of VAT; quote IVA uses this FK. When the indoor design line has a manufacturer, the item’s `brand` is copied from that design line and cannot be chosen independently.
 
 ### item_matches
 
@@ -303,6 +305,9 @@ Same validation and snapshot rules as the web app. Intended for LLM agent invoca
   - `replaces` — fk → `proformas`, optional; set on a **draft** created by **Change** — points back to the source issued row. Null on normal new drafts.
   - `commercial_discount_percent` — number, required, default 0 (copied from parameters on create; overridable while draft)
   - `financial_discount_percent` — number, required (copied from parameters on create; overridable while draft)
+  - `validity_days` — integer, required, default 7 (copied from `default_validity_days` on create; overridable while draft; 1–365). Used only at issue to compute `valid_until`.
+  - `issued_at` — datetime, optional until issue, then required frozen (set once at issue; Europe/Lisbon calendar date is the issue date)
+  - `valid_until` — date, optional until issue, then required frozen (`local issue date + validity_days`)
   - `extra_labour` — money, required, default 0
   - `observations` — text, optional
   - `override_checks` — boolean, required, default false. Staff checkbox on the draft header next to Save / Issue. When true, skip multi outdoor indoor-count checks: add indoor past `max_indoor_ports`, and issue without requiring 2..`max_indoor_ports` children. Split (`ports=1`) still requires exactly one indoor. Compatibility (`item_matches`) and parent-line rules stay on. Not a money field; freeze rules unchanged; copied on **Change**.
@@ -311,7 +316,9 @@ Same validation and snapshot rules as the web app. Intended for LLM agent invoca
   - `extra_tubing_metres` — number (metres), optional until issue, then required frozen; sum over extra-tubing lines of `quantity × length`. Not money. `tubing_total` stays the money sum.
   - `commercial_discount_amount` — money, optional until issue, then required frozen (equipment only; applied first)
   - `financial_discount_amount` — money, optional until issue, then required frozen (equipment remainder after commercial)
-  - `grand_total` — money, optional until issue, then required frozen
+  - `grand_total` — money, optional until issue, then required frozen (net / sem IVA)
+  - `vat_amount` — money, optional until issue, then required frozen (IVA on discounted equipment, extra tubing, and extra labour)
+  - `total_with_vat` — money, optional until issue, then required frozen (client-facing payable: `grand_total + vat_amount`)
   - Snapshot fields (filled at issue; read by PDF):
     - `client_name` — text
     - `client_kind` — enum `person` | `company`
@@ -333,8 +340,10 @@ Same validation and snapshot rules as the web app. Intended for LLM agent invoca
 - Extra history table: no
 - Extra activity table: no
 - Notes:
-  - Only `draft` is editable. Explicit **issue** snapshots totals, client/site display fields, and locks. PDF is for issued documents. Draft preview PDF (if added later) must not lock.
+  - Only `draft` is editable. Explicit **issue** snapshots totals, client/site display fields, VAT rates, issue date, valid-until date, and locks. PDF is for issued documents. Draft preview PDF (if added later) must not lock.
   - Commercial then financial discounts apply to **equipment line totals only**, not tubing, not extra labour. Commercial is applied first; financial is applied to the remainder. Quote/PDF shows the commercial money line only when the amount is not zero; financial is always shown.
+  - List prices and `grand_total` are net (sem IVA). IVA is calculated after discounts: remaining equipment is allocated to lines in proportion to `quantity × unit_price`; each line’s extra tubing is taxed at that line’s item rate; extra labour is taxed at the live default `vat_rates` row (`is_default`). Quote/PDF shows IVA and `total_with_vat` (total com IVA) as the payable.
+  - Validity starts at **issue**, not create. The company default is `parameters.default_validity_days` (7). Each draft copies `validity_days` and staff may change it before issue. `issued_at` and `valid_until` are frozen; changing the parameter does not rewrite them. **Change** copies `validity_days`; the new issue gets a new window. Expiry is display-only (no auto-reject).
   - `extra_labour` is on the header, not on lines.
   - Soft-delete still hides mistakes from live lists.
   - `accepted_at` and `rejected_at` are separate from `status`: an issued proforma stays `issued` with or without a mark. Later reporting can use `accepted_at IS NOT NULL` / `rejected_at IS NOT NULL` and group by those timestamps. Exclude superseded issued rows from active stats (`superseded_by` is null).
@@ -346,6 +355,9 @@ Same validation and snapshot rules as the web app. Intended for LLM agent invoca
     - `commercial_discount_amount` = `equipment_subtotal × commercial_discount_percent / 100`
     - `financial_discount_amount` = `(equipment_subtotal - commercial_discount_amount) × financial_discount_percent / 100`
     - `grand_total` = `equipment_subtotal - commercial_discount_amount - financial_discount_amount + tubing_total + extra_labour`
+    - `vat_amount` = sum of line IVA (discounted equipment share + extra tubing, at each item’s rate) + extra-labour IVA at the default VAT rate
+    - `total_with_vat` = `grand_total + vat_amount`
+    - `valid_until` = Lisbon calendar date of `issued_at` plus `validity_days`
 
 ### proforma_lines
 
@@ -370,6 +382,10 @@ Same validation and snapshot rules as the web app. Intended for LLM agent invoca
     - `power_value` — integer (snapshot of catalog power at issue)
     - `power_unit` — text (snapshot of catalog unit at issue)
     - `tubing_length_value` — number, optional (metres; 0 or null when no extra tubing)
+    - `vat_code` — text (snapshot of item VAT code at issue)
+    - `vat_label` — text (snapshot of item VAT label at issue)
+    - `vat_rate` — number (fraction snapshot of item VAT rate at issue)
+    - `vat_amount` — money (IVA on this line’s discounted equipment plus extra tubing)
 - Relationships: belongs to one `proforma`; points at one `item`; optional `tubing_length`; indoor lines belong to one outdoor `parent_line`
 - Uniqueness: none (same item may appear on more than one line)
 - Reason-required fields: none

@@ -39,7 +39,7 @@
                 </th>
                 <th data-i18n="status">Status</th>
                 <th>
-                    <a href="?{{ sort_urls.total }}" class="th-sort{% if sort == 'total' %} is-sorted is-{{ dir }}{% endif %}" data-i18n="grandTotal">Grand total</a>
+                    <a href="?{{ sort_urls.total }}" class="th-sort{% if sort == 'total' %} is-sorted is-{{ dir }}{% endif %}" data-i18n="totalWithVat">Total including VAT</a>
                 </th>
                 <th>
                     <a href="?{{ sort_urls.updated }}" class="th-sort{% if sort == 'updated' %} is-sorted is-{{ dir }}{% endif %}" data-i18n="updated">Updated</a>
@@ -58,7 +58,7 @@
                     {% if row.rejected_at %}<span class="status-pill status-pill--rejected" data-i18n="rejected">Rejected</span>{% endif %}
                     {% if row.superseded_by_id %}<span class="status-pill status-pill--superseded" data-i18n="superseded">Superseded</span>{% endif %}
                 </td>
-                <td>{{ row.grand_total|default:"" }}</td>
+                <td>{{ row.total_with_vat|default:"" }}</td>
                 <td>{{ row.updated_at|date:"Y-m-d H:i" }}</td>
                 <td>{% include "proformas/includes/proforma_row_actions.html" with proforma=row %}</td>
             </tr>

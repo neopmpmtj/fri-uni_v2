@@ -58,7 +58,9 @@ def test_portuguese_quote_label(client, staff_user, site, indoor):
         },
     )
     assert "Totais" in html
-    assert "Desconto pagamento antecipado" in html
+    assert "IVA" in html
+    assert "Total com IVA" in html
+    assert "Válida até" in html
     assert "Desconto comercial" not in html
     assert 'lang="pt-PT"' in html
 
