@@ -2,6 +2,7 @@ import json
 import re
 from datetime import timedelta
 from decimal import Decimal, InvalidOperation
+from pathlib import Path
 
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.core.validators import MaxLengthValidator
@@ -29,6 +30,7 @@ from .models import (
     VatRate,
 )
 from .pdf import build_proforma_pdf  # noqa: F401
+from .quote_i18n import quote_labels
 
 
 def log_change(
@@ -164,10 +166,41 @@ def validate_iban(value):
 
 
 def get_company():
-    company = Company.objects.first()
+    company = Company.objects.select_related(
+        "phone_country", "contact_position"
+    ).first()
     if company is None:
         raise ValidationError("Company profile is missing.")
     return company
+
+
+def display_iban(value):
+    compact = (value or "").strip()
+    if not compact:
+        return ""
+    return " ".join(compact[i : i + 4] for i in range(0, len(compact), 4))
+
+
+def quote_template_context(proforma, lang, *, absolute_logo=False):
+    company = get_company()
+    logo_src = ""
+    if company.logo:
+        if absolute_logo:
+            try:
+                logo_src = Path(company.logo.path).resolve().as_uri()
+            except (ValueError, OSError):
+                logo_src = company.logo.url
+        else:
+            logo_src = company.logo.url
+    return {
+        "proforma": proforma,
+        "lines": grouped_proforma_lines(proforma),
+        "labels": quote_labels(lang),
+        "company": company,
+        "logo_src": logo_src,
+        "iban_display": display_iban(company.iban),
+        "html_lang": "pt-PT" if lang == "pt" else "en",
+    }
 
 
 @transaction.atomic

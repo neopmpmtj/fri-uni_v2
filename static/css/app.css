@@ -578,6 +578,22 @@ label[hidden] {
     box-shadow: var(--shadow);
 }
 
+.quote-letterhead {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+    margin-bottom: 1.25rem;
+}
+
+.quote-logo {
+    max-height: 4.5rem;
+    width: auto;
+}
+
+.quote-issuer p {
+    margin: 0.15rem 0;
+}
+
 .header-fields {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));

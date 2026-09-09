@@ -44,7 +44,6 @@ from .models import (
     VatRate,
 )
 from .pdf import build_proforma_pdf
-from .quote_i18n import quote_labels
 from accounts.lang import normalize_lang
 
 
@@ -552,18 +551,14 @@ def proforma_quote(request, pk):
         get_object_or_404(Proforma.objects.select_related("site"), pk=pk)
     )
     lang = _quote_lang(request)
-    return render(
-        request,
-        "proformas/quote.html",
+    context = services.quote_template_context(proforma, lang)
+    context.update(
         {
-            "proforma": proforma,
-            "lines": services.grouped_proforma_lines(proforma),
-            "labels": quote_labels(lang),
-            "company_name": "fri-uni",
             "nav_active": "proformas",
             "page_title": proforma.number,
-        },
+        }
     )
+    return render(request, "proformas/quote.html", context)
 
 
 @login_required

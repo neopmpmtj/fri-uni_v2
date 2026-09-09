@@ -688,3 +688,22 @@ None.
 ### Open questions still open
 
 None.
+
+## Update 2026-09-09 — quote/PDF letterhead from live company
+
+### What changed
+
+- Issued quote HTML and PDF read the live `company` row (`get_company()`): name, address, phone (+ dial code) and phone note, email, optional NIF, contact, IBAN, and logo.
+- Not snapshotted onto issued proformas. Changing the company profile changes every later view/download. Still not an official fatura.
+
+### Apps added/removed
+
+None.
+
+### Decisions
+
+- Letterhead is live, not frozen at issue. Empty optional fields (NIF, IBAN, contact, logo) are omitted.
+
+### Open questions still open
+
+None.

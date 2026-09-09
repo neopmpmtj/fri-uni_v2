@@ -1,6 +1,6 @@
 # Session handoff
 
-> **Last updated:** 2026-09-09 10:11 WEST (Europe/Lisbon)  
+> **Last updated:** 2026-09-09 10:53 WEST (Europe/Lisbon)  
 > Replace with the current date and time whenever you edit this file.
 
 ## Project
@@ -17,7 +17,7 @@ Staff app is **`proformas`** (`accounts` is User/login only). Playbook: [`docs/p
 
 Catalog: **family → indoor design line (`sub_families`) → indoor item**; outdoor items have **no** design line (brand + power + `max_indoor_ports` + code). Pairing is **`item_matches`**. Quote lines group under the outdoor (`parent_line`). Sales price is edited only on the manufacturer pricelist (reason required). Django admin is users and audit only.
 
-Do not run `seed_demo` in production. Fresh local DB: `rm -f db.sqlite3`, then `migrate` and `seed_demo`. Restart `runserver` after schema changes. After pulling this tree, run **`migrate`** (migrations `0023` then `0024`).
+Do not run `seed_demo` in production. Fresh local DB: `rm -f db.sqlite3`, then `migrate` and `seed_demo`. Restart `runserver` after schema changes. After pulling this tree, run **`migrate`** (through `0024` if the company table is missing).
 
 **Two tables vs one:** `clients` / `sites` are different nouns (quote → site). Indoor/outdoor stay one `items` table + `item_matches`. See [`data-points.md`](data-points.md) and preliminary-plan update 2026-09-07.
 
@@ -27,7 +27,7 @@ Do not run `seed_demo` in production. Fresh local DB: `rm -f db.sqlite3`, then `
 
 **Validity:** company default `parameters.default_validity_days` (7). Draft `validity_days` is overridable. Issue freezes `issued_at` and `valid_until` (Lisbon date + days). Display only.
 
-**Issuer:** singleton `company` row (Fribila). Staff setup page at `/company/`. Always live — not snapshotted onto issued proformas. Quote HTML/PDF still shows hardcoded `fri-uni` until the letterhead slice.
+**Issuer:** singleton `company` row (Fribila). Staff setup page at `/company/`. Always live — not snapshotted onto issued proformas. Quote HTML/PDF letterhead reads `get_company()` (name, address, phone + note, email, optional NIF/contact/IBAN/logo).
 
 **AC systems:** **Split** = 1 outdoor (`ports=1`) + 1 indoor (staff start from the indoor; default match auto-adds the outdoor). **Default** = type room m³ → `powers` band → that row’s default indoor + matched 1-port outdoor (qty 1). **Multi** = 1 outdoor (`ports≥2`) + 2+ indoors (staff start from the outdoor, then Add indoor). Extra tubing stays on indoor runs. Editing a 1-port outdoor line uses the outdoor drawer (not indoor/design-line). **Override checks** on the draft header skips multi indoor-count rules (add past ports; issue without 2..ports). Split stays exact-one indoor.
 
@@ -35,17 +35,15 @@ Do not run `seed_demo` in production. Fresh local DB: `rm -f db.sqlite3`, then `
 
 ## Done (this session)
 
-- **Company singleton:** `Company` model, migration `0024` seeds one Fribila row (address, phone, phone note, email; NIF/IBAN/contact/logo blank for staff to fill later). `get_company()` / `save_company()`; Portuguese IBAN validator. Setup page (form on the page, multipart logo, no delete). Dashboard Setup card. Staff and admin may edit.
-- **Tests:** **198 passing** (`pytest`), including company seed, singleton, IBAN, staff GET/POST, NIF/phone length.
-- Pillow added to `requirements.txt` for `ImageField` uploads.
+- **Quote/PDF letterhead:** issued HTML and PDF read the live Fribila `company` row (`get_company()`): name, address, phone + note, email, optional NIF, contact, IBAN, logo. Empty optionals omitted. Not snapshotted at issue.
+- **Tests:** **203 passing** (`pytest`).
 
 ## Done (earlier)
 
-- VAT on quotes; validity window; financial vs commercial discounts; code review 2026-09-08; M1 stale `default_indoor`; error-dead-ends audit; PDF/seed hardening; Add default volume split + extra tubing; override checks; AC pairing; Phases 1–8; catalog slice; VAT rates on items; client/site identity; Change/supersede
+- Company singleton + setup page; VAT on quotes; validity window; financial vs commercial discounts; code review 2026-09-08; M1 stale `default_indoor`; error-dead-ends audit; PDF/seed hardening; Add default volume split + extra tubing; override checks; AC pairing; Phases 1–8; catalog slice; VAT rates on items; client/site identity; Change/supersede
 
 ## Not done
 
-- Quote/PDF letterhead from the live company row (still hardcoded `fri-uni`)
 - Production deploy
 - Real catalog prices
 - Indoor BTU vs outdoor capacity math
@@ -57,8 +55,8 @@ Do not run `seed_demo` in production. Fresh local DB: `rm -f db.sqlite3`, then `
 
 ## Next
 
-1. Quote/PDF letterhead reads live `get_company()` — name, address, phone + note, email, contact, IBAN, logo
-2. Production deploy when ready
+1. Production deploy when ready
+2. Remaining backlog in [`project-plan.md`](project-plan.md)
 
 ## Commands
 

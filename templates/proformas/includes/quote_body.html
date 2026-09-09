@@ -1,10 +1,25 @@
 <article class="quote-doc">
-    <header>
-        <p class="eyebrow">{{ company_name }}</p>
-        <h1>{{ labels.title }} {{ proforma.number }}</h1>
-        {% if proforma.issued_at %}<p>{{ labels.issuedOn }}: {{ proforma.issued_at|date:"Y-m-d" }}</p>{% endif %}
-        {% if proforma.valid_until %}<p>{{ labels.validUntil }}: {{ proforma.valid_until|date:"Y-m-d" }}</p>{% endif %}
+    <header class="quote-letterhead">
+        {% if logo_src %}
+        <img class="quote-logo" src="{{ logo_src }}" alt="">
+        {% endif %}
+        <div class="quote-issuer">
+            <p class="eyebrow">{{ company.name }}</p>
+            <p>{{ company.street }}</p>
+            <p>{{ company.postal_code }} {{ company.city }}</p>
+            {% if company.tax_number %}<p>{{ labels.taxNumber }}: {{ company.tax_number }}</p>{% endif %}
+            <p>{{ labels.phone }}: +{{ company.phone_country.dial_code }} {{ company.phone }}</p>
+            {% if company.phone_note %}<p class="muted">{{ company.phone_note }}</p>{% endif %}
+            <p>{{ labels.email }}: {{ company.email }}</p>
+            {% if company.contact_name %}
+            <p>{{ labels.contactPerson }}: {{ company.contact_name }}{% if company.contact_position %} — {{ company.contact_position.name }}{% endif %}</p>
+            {% endif %}
+            {% if iban_display %}<p>{{ labels.iban }}: {{ iban_display }}</p>{% endif %}
+        </div>
     </header>
+    <h1>{{ labels.title }} {{ proforma.number }}</h1>
+    {% if proforma.issued_at %}<p>{{ labels.issuedOn }}: {{ proforma.issued_at|date:"Y-m-d" }}</p>{% endif %}
+    {% if proforma.valid_until %}<p>{{ labels.validUntil }}: {{ proforma.valid_until|date:"Y-m-d" }}</p>{% endif %}
     <section>
         <h2>{{ labels.client }}</h2>
         <p>{{ proforma.client_name }}</p>
