@@ -398,6 +398,8 @@ Do not implement in these phases:
 - [x] Proforma list: Open issued work page instead of Change POST; Change (supersede) only on issued work page with confirm (completed 2026-09-08)
 - [x] VAT on quote math / line snapshots / issued HTML and PDF; `grand_total` stays net; payable is `total_with_vat` (completed 2026-09-09)
 - [x] Quote validity: `parameters.default_validity_days` (7, migration-seeded); per-draft `validity_days`; freeze `issued_at` / `valid_until` at issue (completed 2026-09-09)
+- [x] Company singleton table (Fribila issuer): setup page, media logo, `get_company()` (completed 2026-09-09)
+- [ ] Quote/PDF letterhead reads live company row (added 2026-09-09)
 - [ ] PDF generation: application-level timeout or async job for WeasyPrint hang risk (gunicorn timeout is mitigation only) (added 2026-09-08; from error-dead-ends H1)
 - [ ] Confirm dialog: browser E2E or documented manual regression checklist for outcome confirm Yes/No (added 2026-09-08; from error-dead-ends M1 — code hardened, no automated UI test)
 - [ ] Concurrency: stress tests for concurrent Change / accept / reject (added 2026-09-08; from error-dead-ends M4 — row locks in place)

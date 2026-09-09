@@ -14,6 +14,7 @@ from .models import (
     ActorType,
     ChangeLog,
     Client,
+    Company,
     Country,
     Family,
     Item,
@@ -144,6 +145,41 @@ def validate_phone_number(value, *, country_code="PT"):
     if len(digits) > expected:
         raise ValidationError(f"Phone has more than {expected} digits.")
     return digits
+
+
+def validate_iban(value):
+    raw = (value or "").strip()
+    if not raw:
+        return ""
+    compact = re.sub(r"\s+", "", raw).upper()
+    if not re.fullmatch(r"PT\d{23}", compact):
+        raise ValidationError("Enter a Portuguese IBAN (PT followed by 23 digits).")
+    rearranged = compact[4:] + compact[:4]
+    numeric = "".join(
+        str(ord(char) - 55) if char.isalpha() else char for char in rearranged
+    )
+    if int(numeric) % 97 != 1:
+        raise ValidationError("Invalid IBAN check digits.")
+    return compact
+
+
+def get_company():
+    company = Company.objects.first()
+    if company is None:
+        raise ValidationError("Company profile is missing.")
+    return company
+
+
+@transaction.atomic
+def save_company(company, user):
+    company.singleton = True
+    if company.pk is None and Company.objects.exists():
+        raise ValidationError("Only one company profile is allowed.")
+    if company.pk is None:
+        company.created_by = user
+    company.updated_by = user
+    company.save()
+    return company
 
 
 def get_parameter(key, default=None):
@@ -728,6 +764,8 @@ def delete_contact_position(contact_position, user):
         raise ValidationError("Cannot delete a position that is used by clients.")
     if Site.objects.filter(contact_position=contact_position).exists():
         raise ValidationError("Cannot delete a position that is used by sites.")
+    if Company.objects.filter(contact_position=contact_position).exists():
+        raise ValidationError("Cannot delete a position that is used by the company.")
     contact_position.soft_delete(user)
 
 

@@ -666,3 +666,25 @@ None.
 ### Open questions still open
 
 None.
+
+## Update 2026-09-09 — company issuer profile
+
+### What changed
+
+- New singleton **`company`** table for the issuing HVAC firm on client-facing quotes (**Fribila**, not FreeBiller). Staff setup page (Company / Empresa); no New, no Delete. Staff and admin may edit.
+- Fields: name, optional NIF, required address, phone + optional phone note, email, optional contact person/position, optional Portuguese IBAN, optional logo under `media/company/`.
+- Always **live** for future quote/PDF (not snapshotted onto issued proformas). This slice stores the row and `get_company()`; HTML/PDF letterhead is the next slice.
+- Migrate seeds one Fribila row (street, postal, city, phone, phone note, email). NIF, IBAN, contact, and logo are left blank for staff to fill in the working app.
+
+### Apps added/removed
+
+None.
+
+### Decisions
+
+- One live row. Quote/PDF will read the live company on every download.
+- Phone and NIF reuse the existing Portuguese validators. IBAN is compact `PT` + 23 digits with mod-97.
+
+### Open questions still open
+
+None.
