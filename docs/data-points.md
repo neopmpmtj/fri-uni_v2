@@ -116,7 +116,7 @@ Same validation and snapshot rules as the web app. Intended for LLM agent invoca
 - Reason-required fields: none
 - Extra history table: no
 - Extra activity table: no
-- Notes: singleton. Staff and admin may edit; no create or delete from the setup page. Quote/PDF will read this **live** row (not snapshotted onto issued proformas). Changing name, NIF, IBAN, or logo later changes every download. Initial row from migrate: name Fribila, street Rua da Promaça nº4, postal 5000-081, city Vila Real, phone 259326314, phone note as above, email info@fribila.pt; NIF, IBAN, contact, and logo left blank for staff to fill.
+- Notes: singleton. Staff and admin may edit; no create or delete from the setup page. Quote/PDF reads this **live** row (not snapshotted onto issued proformas). Changing name, NIF, IBAN, or logo later changes every download. Initial row from migrate: name Fribila, street Rua da Promaça nº4, postal 5000-081, city Vila Real, phone 259326314, phone note as above, email info@fribila.pt; NIF, IBAN, contact, and logo left blank for staff to fill.
 
 ### countries
 

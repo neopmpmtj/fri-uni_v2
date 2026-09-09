@@ -85,9 +85,9 @@ Mark complete during session-handoff: `- [x] ... (completed YYYY-MM-DD)`
 
 ## Session
 
-**Done:** Company singleton (Fribila issuer): setup page, `get_company()`, media logo, IBAN validator, migration `0024`. Stacked on VAT/validity (`0023`). **198 tests** green.
+**Done:** Quote/PDF letterhead from live `company` row (`get_company()`). Company setup page + migration `0024` already on main. **203 tests** green.
 
-**Not done:** Quote/PDF letterhead from live company; production deploy; real prices; capacity math; site-contact snapshots on issued PDFs; heating expansion; PDF timeout/E2E/concurrency backlog items.
+**Not done:** Production deploy; real prices; capacity math; site-contact snapshots on issued PDFs; heating expansion; PDF timeout/E2E/concurrency backlog items.
 
-**Next:** Quote/PDF letterhead reads live company row. Read [`docs/handoff.md`](docs/handoff.md).
+**Next:** Production deploy when ready. Read [`docs/handoff.md`](docs/handoff.md).
 

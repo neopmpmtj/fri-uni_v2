@@ -45,17 +45,11 @@ def test_portuguese_quote_label(client, staff_user, site, indoor):
     assert len(pdf.content) > 0
     from django.template.loader import render_to_string
 
-    from proformas.quote_i18n import quote_labels
+    from proformas.services import quote_template_context
 
     html = render_to_string(
         "proformas/quote_pdf.html",
-        {
-            "proforma": proforma,
-            "lines": proforma.lines.all(),
-            "labels": quote_labels("pt"),
-            "company_name": "fri-uni",
-            "html_lang": "pt-PT",
-        },
+        quote_template_context(proforma, "pt", absolute_logo=True),
     )
     assert "Totais" in html
     assert "IVA" in html
@@ -63,6 +57,8 @@ def test_portuguese_quote_label(client, staff_user, site, indoor):
     assert "Válida até" in html
     assert "Desconto comercial" not in html
     assert 'lang="pt-PT"' in html
+    assert "Fribila" in html
+    assert "fri-uni" not in html
 
 
 def test_quote_includes_extra_site_snapshots(client, staff_user, site, indoor):

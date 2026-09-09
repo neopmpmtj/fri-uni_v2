@@ -183,7 +183,7 @@ Analog of a warehouse **console**, not a Django form wizard.
 
 ### Issued quote view
 
-Document-like page for the client-facing quote (snapshots, issue date, valid until, line table, net totals, VAT, total including VAT, observations). Still uses the **work topbar**. Print/PDF stylesheet. Language from `fu-lang` cookie on the server for PDF. Implementation: Phase 7.
+Document-like page for the client-facing quote (live company letterhead, snapshots, issue date, valid until, line table, net totals, VAT, total including VAT, observations). Still uses the **work topbar**. Print/PDF stylesheet. Language from `fu-lang` cookie on the server for PDF. Implementation: Phase 7 + company letterhead slice.
 
 ---
 
@@ -230,3 +230,4 @@ Document-like page for the client-facing quote (snapshots, issue date, valid unt
 - [x] Front-end: VAT on Items + Setup cards for VAT rates, Parameters, Tubing (completed 2026-09-06)
 - [x] Front-end: Add default drawer + Powers volume band / default indoor (completed 2026-09-08)
 - [x] Front-end: Company setup page (form on page, logo upload, no delete) (completed 2026-09-09)
+- [x] Front-end: issued quote/PDF letterhead from live company row (completed 2026-09-09)
