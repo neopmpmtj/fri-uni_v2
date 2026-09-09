@@ -11,7 +11,7 @@ A later agent implements UI only after the matching implementation phase. Checkb
 1. Read this file **before any staff HTML/CSS/JS**.
 2. Two layouts only: **dashboard** and **work page**. Do not invent a third shell.
 3. **Server-rendered tables + JS drawer.** Do not add a `/api/manage/` clone unless a later phase truly needs it. Warehouse items load rows via JSON APIs; fri-uni does not.
-4. Catalog identity (items) is a **staff work page**. Families, sub-families, manufacturers, VAT rates, parameters, and tubing lengths are **setup pages** opened from dashboard cards. Django contrib admin is users and audit only.
+4. Catalog identity (items) is a **staff work page**. Families, sub-families, manufacturers, VAT rates, parameters, company, and tubing lengths are **setup pages** opened from dashboard cards. Django contrib admin is users and audit only.
 
 ## Visual tokens (light only)
 
@@ -58,7 +58,7 @@ Main (`dash-main`, max-width ~72rem):
 - App title (e.g. company / “Proformas”).
 - Two card groups:
   - **Daily** (`card-grid`): Clients, Sites, Proformas, Items.
-  - **Setup** (`card-grid`, heading “Setup”): Families, Sub-families, Manufacturers, VAT rates, Powers, Parameters, Tubing lengths.
+  - **Setup** (`card-grid`, heading “Setup”): Families, Sub-families, Manufacturers, VAT rates, Powers, Parameters, Company, Tubing lengths, Positions.
 - Do **not** put a Catalog (Django admin) card on the dashboard.
 - Cards: white surface, 8px radius, shadow; hover accent border. Title + one-line description. `data-i18n` on strings.
 
@@ -130,9 +130,9 @@ Daily catalog. Light: identity only, **no sales price field**.
 - If the chosen design line has a manufacturer, that field is filled and **visible but inactive**. Outdoor items have no design line.
 - Soft-delete in the drawer (admin only).
 
-### Families / Sub-families / Manufacturers / VAT / Parameters / Tubing (setup pages)
+### Families / Sub-families / Manufacturers / VAT / Parameters / Company / Tubing (setup pages)
 
-Same list+drawer chrome. Opened from dashboard setup cards only.
+Same list+drawer chrome except **Company**. Opened from dashboard setup cards only.
 
 - **Families:** name, default.
 - **Sub-families:** family, name, optional manufacturer, default; filter by family. Empty manufacturer = shared range.
@@ -140,6 +140,7 @@ Same list+drawer chrome. Opened from dashboard setup cards only.
 - **VAT rates:** code, label, percent (stored as 0–1), default. Soft-delete admin only.
 - **Powers:** power, unit, volume from / to (m³), default indoor. Soft-delete admin only if unused.
 - **Parameters:** known keys only; edit `value`. No New / Delete.
+- **Company:** singleton work page with the form **on the page** (not list+drawer). Name, NIF, address, phone + note, email, contact, IBAN, logo (`enctype=multipart`). No New / Delete.
 - **Tubing lengths:** length, price (reason required on price change). Soft-delete admin only.
 
 Do **not** nest Families / Sub-families as a Master-data cluster on the Items page.
@@ -228,3 +229,4 @@ Document-like page for the client-facing quote (snapshots, issue date, valid unt
 - [x] Front-end: line drawer Family → Sub-family → Manufacturer → Item with defaults (completed 2026-09-06)
 - [x] Front-end: VAT on Items + Setup cards for VAT rates, Parameters, Tubing (completed 2026-09-06)
 - [x] Front-end: Add default drawer + Powers volume band / default indoor (completed 2026-09-08)
+- [x] Front-end: Company setup page (form on page, logo upload, no delete) (completed 2026-09-09)

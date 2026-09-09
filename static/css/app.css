@@ -514,6 +514,22 @@ label[hidden] {
     margin-top: 1rem;
 }
 
+.work-form {
+    max-width: 32rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow);
+    padding: 1.25rem;
+}
+
+.logo-preview {
+    max-height: 5rem;
+    width: auto;
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
 .phone-input {
     display: flex;
     align-items: center;

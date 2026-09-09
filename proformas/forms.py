@@ -5,6 +5,7 @@ from django.db.models import Q
 from .models import (
     Brand,
     Client,
+    Company,
     ContactPosition,
     Country,
     Family,
@@ -35,6 +36,7 @@ from .services import (
     validate_tax_number,
     validate_vat_code,
     validity_days_value,
+    validate_iban,
 )
 
 
@@ -134,6 +136,92 @@ class ClientForm(forms.ModelForm):
 
     def clean_contact_name(self):
         return (self.cleaned_data.get("contact_name") or "").strip()
+
+
+class CompanyForm(forms.ModelForm):
+    class Meta:
+        model = Company
+        fields = (
+            "name",
+            "tax_number",
+            "street",
+            "postal_code",
+            "city",
+            "country_code",
+            "phone_country",
+            "phone",
+            "phone_note",
+            "email",
+            "contact_name",
+            "contact_position",
+            "iban",
+            "logo",
+        )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["country_code"].widget = forms.Select(choices=[("PT", "Portugal")])
+        configure_nine_digit_form_field(self.fields["tax_number"], required=False)
+        configure_nine_digit_form_field(self.fields["phone"], required=True)
+        self.fields["phone_country"].queryset = Country.objects.order_by("name")
+        self.fields["phone_country"].disabled = True
+        self.fields["phone_country"].label_from_instance = (
+            lambda obj: f"{obj.name} (+{obj.dial_code})"
+        )
+        self.fields["contact_name"].required = False
+        self.fields["contact_position"].queryset = ContactPosition.objects.order_by(
+            "name"
+        )
+        self.fields["contact_position"].required = False
+        self.fields["phone_note"].required = False
+        self.fields["iban"].required = False
+        self.fields["logo"].required = False
+        self.fields["logo"].widget.attrs["accept"] = "image/*"
+
+    def clean(self):
+        cleaned = super().clean()
+        if self.fields["phone_country"].disabled:
+            if self.instance.pk and self.instance.phone_country_id:
+                cleaned["phone_country"] = self.instance.phone_country
+            else:
+                cleaned["phone_country"] = Country.objects.get(code="PT")
+        return cleaned
+
+    def clean_name(self):
+        return self.cleaned_data["name"].strip()
+
+    def clean_tax_number(self):
+        raw = (self.cleaned_data.get("tax_number") or "").strip()
+        if not raw:
+            return ""
+        return validate_tax_number(raw)
+
+    def clean_phone(self):
+        if self.instance.pk and self.instance.phone_country_id:
+            country_code = self.instance.phone_country_id
+        else:
+            country_code = "PT"
+        return validate_phone_number(
+            self.cleaned_data["phone"], country_code=country_code
+        )
+
+    def clean_postal_code(self):
+        return normalize_postal_code(self.cleaned_data["postal_code"])
+
+    def clean_street(self):
+        return self.cleaned_data["street"].strip()
+
+    def clean_city(self):
+        return self.cleaned_data["city"].strip()
+
+    def clean_contact_name(self):
+        return (self.cleaned_data.get("contact_name") or "").strip()
+
+    def clean_phone_note(self):
+        return (self.cleaned_data.get("phone_note") or "").strip()
+
+    def clean_iban(self):
+        return validate_iban(self.cleaned_data.get("iban"))
 
 
 class SiteForm(forms.ModelForm):
