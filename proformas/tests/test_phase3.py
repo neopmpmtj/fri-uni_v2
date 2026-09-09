@@ -9,6 +9,7 @@ from accounts.models import User
 from proformas.models import (
     Brand,
     ChangeLog,
+    Company,
     Family,
     Item,
     ItemMatch,
@@ -59,6 +60,9 @@ def test_migrate_seeds_parameters_family_brands_and_tubing():
         (Decimal("5.00"), Decimal("40.00")),
         (Decimal("10.00"), Decimal("70.00")),
     }
+    company = Company.objects.get()
+    assert company.name == "Fribila"
+    assert Company.objects.count() == 1
 
 
 @pytest.mark.unit
@@ -331,6 +335,7 @@ def test_staff_can_open_catalog_pages(client, staff_user):
         "vat_rate_list",
         "power_list",
         "parameter_list",
+        "company_edit",
         "tubing_length_list",
         "contact_position_list",
     ):
@@ -342,6 +347,8 @@ def test_staff_can_open_catalog_pages(client, staff_user):
     assert b'data-i18n="vatRates"' in dashboard.content
     assert b'data-i18n="powers"' in dashboard.content
     assert b'data-i18n="parameters"' in dashboard.content
+    assert b'data-i18n="company"' in dashboard.content
+    assert b'data-i18n="companyDesc"' in dashboard.content
     assert b'data-i18n="tubingLengths"' in dashboard.content
     assert b'data-i18n="contactPositions"' in dashboard.content
     assert b"catalogAdmin" not in dashboard.content

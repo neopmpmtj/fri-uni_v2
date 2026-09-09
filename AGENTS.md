@@ -85,9 +85,9 @@ Mark complete during session-handoff: `- [x] ... (completed YYYY-MM-DD)`
 
 ## Session
 
-**Done:** VAT on quote math/PDF (`vat_amount`, `total_with_vat`); quote validity (`default_validity_days=7`, per-draft override, freeze `issued_at`/`valid_until`). Migration `0023`. **185 tests** green.
+**Done:** Company singleton (Fribila issuer): setup page, `get_company()`, media logo, IBAN validator, migration `0024`. Stacked on VAT/validity (`0023`). **Tests** in `proformas/tests/test_company.py`.
 
-**Not done:** Production deploy; letterhead; real prices; capacity math; site-contact snapshots on issued PDFs; heating expansion; PDF timeout/E2E/concurrency backlog items.
+**Not done:** Quote/PDF letterhead from live company; production deploy; real prices; capacity math; site-contact snapshots on issued PDFs; heating expansion; PDF timeout/E2E/concurrency backlog items.
 
-**Next:** Company letterhead on PDF. Read [`docs/handoff.md`](docs/handoff.md).
+**Next:** Quote/PDF letterhead reads live company row. Read [`docs/handoff.md`](docs/handoff.md).
 
