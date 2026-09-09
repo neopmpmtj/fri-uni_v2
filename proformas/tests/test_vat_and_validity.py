@@ -1,6 +1,7 @@
 from datetime import datetime
 from decimal import Decimal
 from io import StringIO
+import json
 from unittest.mock import patch
 from zoneinfo import ZoneInfo
 
@@ -231,5 +232,6 @@ def test_cli_validity_days(staff_user, site, indoor):
     )
     from proformas.models import Proforma
 
-    proforma = Proforma.objects.get(number=out.getvalue().strip())
+    payload = json.loads(out.getvalue())
+    proforma = Proforma.objects.get(pk=payload["item"]["id"])
     assert proforma.validity_days == 21

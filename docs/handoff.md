@@ -1,13 +1,13 @@
 # Session handoff
 
-> **Last updated:** 2026-09-09 10:53 WEST (Europe/Lisbon)  
+> **Last updated:** 2026-09-09 13:40 WEST (Europe/Lisbon)  
 > Replace with the current date and time whenever you edit this file.
 
 ## Project
 
 Internal back office for one HVAC company (slice of “universe”). Staff create **proforma invoices**: client-facing quotes showing equipment to be installed and what it will cost, including commercial and financial discounts and IVA. Not an official finance document.
 
-**MVP:** email+password login → dashboard (pick EN/PT once) → clients/sites (list + drawer) → draft proforma (work page + line drawer) → issue/lock snapshots → on-screen quote + PDF download. Catalog is staff pages (Items daily; Families / Design lines / Manufacturers / VAT / Parameters / Company / Tubing setup). CLI: `create_proforma`.
+**MVP:** email+password login → dashboard (pick EN/PT once) → clients/sites (list + drawer) → draft proforma (work page + line drawer) → issue/lock snapshots → on-screen quote + PDF download. Catalog is staff pages (Items daily; Families / Design lines / Manufacturers / VAT / Parameters / Company / Tubing setup). CLI: `create_proforma` plus JSON lookup/save commands (`client_list`, `client_save`, …) — see [`agent-ops.md`](agent-ops.md).
 
 ## Start here (new agent)
 
@@ -35,8 +35,9 @@ Do not run `seed_demo` in production. Fresh local DB: `rm -f db.sqlite3`, then `
 
 ## Done (this session)
 
+- **Agent CLI P0–P2:** JSON lookup/save plus quote lifecycle (`create_proforma --volume-m3` or `--line`, add/update/remove line, issue/change/accept/reject, `proforma_pdf`). `create_proforma` now prints the JSON envelope. Staff UI unchanged.
 - **Quote/PDF letterhead:** issued HTML and PDF read the live Fribila `company` row (`get_company()`): name, address, phone + note, email, optional NIF, contact, IBAN, logo. Empty optionals omitted. Not snapshotted at issue.
-- **Tests:** **203 passing** (`pytest`).
+- **Tests:** **218 passing** (`pytest`).
 
 ## Done (earlier)
 
@@ -55,8 +56,8 @@ Do not run `seed_demo` in production. Fresh local DB: `rm -f db.sqlite3`, then `
 
 ## Next
 
-1. Production deploy when ready
-2. Remaining backlog in [`project-plan.md`](project-plan.md)
+1. Discuss P3 agent identity before seeding extra users
+2. Production deploy when ready
 
 ## Commands
 

@@ -410,6 +410,17 @@ Do not implement in these phases:
 - [ ] Heating catalog slice: furnace + radiator circuit — heat-source line + optional child radiator lines (design TBD in data-points) (added 2026-09-08)
 - [ ] Heating quoting: family-specific quick-add / sizing (not AC m³→BTU Add default) (added 2026-09-08)
 
+## Agent ops (CLI for a voice/bash agent)
+
+Staff web UI stays. The agent calls `manage.py` commands that wrap `proformas/services.py`. JSON envelope on stdout (`ok`, `entity`, `items` / `item`); errors still exit 1 as `CommandError`. Contract: [`docs/agent-ops.md`](agent-ops.md). Shared helpers: `proformas/agent_cli.py`.
+
+- [x] P0: list/search/show (`client_*`, `site_*`, `item_*`, `power_list`, `proforma_*`, `company_show`) + JSON envelope (completed 2026-09-09)
+- [x] P1: `client_save` / `site_save` / admin-only `client_delete` / `site_delete` (completed 2026-09-09)
+- [x] P2: `--volume-m3` on `create_proforma`; line add/update/remove; issue/change/accept/reject; `proforma_pdf` (completed 2026-09-09)
+- [ ] P3: agent identity + README voice usage — **parked**; discuss before seeding extra users (added 2026-09-09)
+
+P3 is not two AI agents. It would be two Django logins used only as `--user` so audit (`created_by`) shows the bot, and deletes can use an admin identity. Do not seed `agent@` / `agent-admin@` until that is agreed.
+
 ## Tests policy
 
 | Phase | What to prove |

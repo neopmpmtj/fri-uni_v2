@@ -19,6 +19,7 @@ views / management commands  →  proformas/services.py  →  models.py
 - Minimize scope — focused diffs; match existing patterns
 - Issued proformas are frozen snapshots; do not edit locked money fields
 - `docs/project-plan.md` is the checkbox backlog — do not write product scope there; use `docs/preliminary_project-plan.md`
+- Agent CLI (voice/bash): JSON management commands wrapping services. Lookup: `client_list` / `client_show`, `site_*`, `item_*`, `power_list`, `proforma_*`, `company_show`. Writes: `client_save` / `site_save`; deletes need an admin `--user`. Quotes: `create_proforma` (`--line` or `--volume-m3`), `proforma_add_line` / `update_line` / `remove_line`, `proforma_issue` / `change` / `accept` / `reject`, `proforma_pdf`. No REST API. See [`docs/agent-ops.md`](docs/agent-ops.md).
 
 ## Do
 
@@ -85,9 +86,9 @@ Mark complete during session-handoff: `- [x] ... (completed YYYY-MM-DD)`
 
 ## Session
 
-**Done:** Quote/PDF letterhead from live `company` row (`get_company()`). Company setup page + migration `0024` already on main. **203 tests** green.
+**Done:** Agent CLI P0–P2 (lookup, client/site save, quote lifecycle + PDF). Quote/PDF letterhead from live `company` row. **218 tests** green.
 
-**Not done:** Production deploy; real prices; capacity math; site-contact snapshots on issued PDFs; heating expansion; PDF timeout/E2E/concurrency backlog items.
+**Not done:** Agent CLI P3 identity (parked); production deploy; real prices; capacity math; heating expansion.
 
-**Next:** Production deploy when ready. Read [`docs/handoff.md`](docs/handoff.md).
+**Next:** Discuss P3, or production deploy. Read [`docs/handoff.md`](docs/handoff.md).
 

@@ -2,13 +2,13 @@
 
 Internal HVAC back office for creating **proforma invoices** — client quotes for equipment installation and cost, including commercial and financial discounts. Not an official finance document.
 
-> **Last updated:** 2026-09-09 10:53 WEST
+> **Last updated:** 2026-09-09 13:40 WEST
 
 ## What it does
 
 Staff sign in with email, pick language on the dashboard, then quote from a catalog (family → indoor design line → indoor item; outdoor units by manufacturer, power, and port count; pairing via item matches): client and site, split, volume **Add default**, or multi-split systems, optional extra tubing per indoor run, extra labour, validity window, observations. **Issue** freezes a snapshot (including IVA and valid-until); staff can view the quote on screen and download a PDF with the live Fribila letterhead. Clients do not log in.
 
-A management command (`create_proforma`) can create a proforma in one shot (same database, mandatory `--user`).
+A management command (`create_proforma`) can create a proforma in one shot (same database, mandatory `--user`; `--line` or `--volume-m3`). Lookup, client/site writes, issue/PDF, and line edits for a voice/bash agent print JSON. See [`docs/agent-ops.md`](docs/agent-ops.md).
 
 ## Quick start
 
@@ -39,6 +39,7 @@ Demo logins (password `fribila-demo`):
 | [`docs/preliminary_project-plan.md`](docs/preliminary_project-plan.md) | Product scope, apps, decisions |
 | [`docs/reviews/`](docs/reviews/) | In-progress audits |
 | [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) | VPS deploy notes |
+| [`docs/agent-ops.md`](docs/agent-ops.md) | Voice/bash agent CLI contract |
 | [`AGENTS.md`](AGENTS.md) | Agent instructions |
 
 ## Stack

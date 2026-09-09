@@ -1,8 +1,8 @@
 # fri-uni — Agent Operations Blueprint (voice-first)
 
 **Project:** fri-uni (internal HVAC proforma back office) — repo `neopmpmtj/fri-uni_v2`
-**Date:** 2026-09-08 (blueprint v1) · **rev 2: 2026-09-09** — synced to repo `a3dee37` (company profile, VAT + validity, letterhead landed)
-**Local copy:** `/home/pmpmt/app/fri-uni_v2` (main, clean, **205 tests green**)
+**Date:** 2026-09-08 (blueprint v1) · **rev 4: 2026-09-09** — P0–P2 landed (lookup, client/site save, quote lifecycle + PDF); P3 identity parked
+**Local copy:** `/home/pmpmt/app/fri-uni_v2` (main, **218 tests green**)
 **Goal:** make the app 100% operable by an AI agent through **voice conversation** — the agent lists, filters, creates, edits and issues proformas exactly like a staff member, but faster, with no human needing to hold every detail in their head.
 
 ---
@@ -27,11 +27,14 @@ Human (voice / chat)  →  agent (Neo)  →  management commands  →  services.
 | Audit trail | `AuditedModel` + `ChangeLog` + `ActivityLog` | `created_by/updated_by`, `actor_type` |
 | Soft delete | `deleted_at` + `LiveManager` | Live rows only unless deleted; parameters and company profile never delete |
 | Role model | `accounts.User.role` (`staff`/`admin`) | `admin` → Django admin + delete rights |
-| One CLI today | `proformas/management/commands/create_proforma.py` | `--user --site --line item:qty[:tubing] [--issue] [--discount-percent] [--commercial-discount-percent] [--extra-labour] [--observations]` |
+| JSON lookup CLI | `client_list` / `client_show`, `site_*`, `item_*`, `power_list`, `proforma_*`, `company_show` | stdout JSON envelope (`proformas/agent_cli.py`) |
+| Client/site write CLI | `client_save` / `site_save` / `client_delete` / `site_delete` | same services as the staff UI; delete is admin-only |
+| Create CLI | `create_proforma` | JSON envelope. `--user --site` plus `--line item:qty[:tubing]` **or** `--volume-m3` (`--tubing` only with volume). Optional `--issue`, discounts, `--validity-days` |
+| Quote lifecycle CLI | `proforma_add_line` / `update_line` / `remove_line`, `proforma_issue` / `change` / `accept` / `reject` / `unaccept` / `unreject`, `proforma_pdf --out` | same services as the staff UI; PDF is issued-only |
 | Permission rules | `require_delete_permission` etc. | Only `admin` soft-deletes clients/sites/catalog; parameters never delete |
 | Frozen issue snapshots | `issue_proforma` | Client/site/catalog display fields copied onto proforma + lines |
 | Corrections | `change_proforma` (supersede), accept/reject overlays | No `cancelled` status |
-| Tests | pytest, **205 passing** | 2–6 tests per phase convention; new suites: `test_company.py`, `test_vat_and_validity.py`, `test_quote_letterhead.py` |
+| Tests | pytest, **218 passing** | 2–6 tests per phase convention; agent CLI: `test_agent_cli_p0.py`, `test_agent_cli_p1.py`, `test_agent_cli_p2.py` |
 | Company profile (issuer) | `proformas.models.Company` + `company_edit` staff page | Singleton (`uniq_live_company`); edited by staff/admin, **no create/delete**; quotes/PDF read it **live** (not snapshotted) |
 | VAT on quotes | migrations `0023_vat_and_validity`, `0024_company_profile` | Line/quote IVA after discounts; `vat_amount`, `total_with_vat` frozen at issue |
 | Quote validity | `validity_days` (default 7, from `default_validity_days` parameter) | Window starts at **issue**; `valid_until` frozen; expiry is display-only |
@@ -249,11 +252,11 @@ Agent:  (create_proforma --site 12 --line 501:1 --line 305:1 --line 306:1 --line
 ## 8. Test & rollout plan
 
 Phases (each: commands + pytest 2–6 tests + docs):
-- **P0** — list/search/show commands for all entities + output envelope + index migration. Acceptance: every list answers < 200 ms locally.
-- **P1** — write CRUD commands (client/site/catalog) with permission and validation tests (delete blocked for staff; price change requires reason).
-- **P2** — proforma lifecycle: mode flags (`--volume-m3`), add/update/remove line, issue/change/accept/reject commands. Acceptance: CLI-only end-to-end creates, issues and PDF-exports a proforma.
-- **P3** — agent user(s), `docs/agent-ops.md` (this blueprint in-repo), AGENTS.md section, README "Voice / agent usage" + the three worked dialogues.
-- Full suite stays ≥ 205 green (current baseline); dry-run demos with `seed_demo` data before any real data.
+- **P0** — list/search/show commands for core entities + JSON envelope. **Done 2026-09-09.**
+- **P1** — `client_save` / `site_save` / admin-only deletes. **Done 2026-09-09.** Catalog write commands still out of scope.
+- **P2** — `--volume-m3`, line add/update/remove, issue/change/accept/reject/unaccept/unreject, `proforma_pdf`. **Done 2026-09-09.** `create_proforma` now prints the JSON envelope.
+- **P3** — agent user(s) — **parked**; discuss before seeding. Not two AI agents: two Django logins for `--user` audit / admin deletes.
+- Full suite stays ≥ 218 green (current baseline); dry-run demos with `seed_demo` data before any real data.
 
 ---
 
